@@ -20,9 +20,9 @@
 # -- Project information -----------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#project-information
 
-project = "Module Template Project"
-project_url = "https://eclipse-score.github.io/module_template/"
-project_prefix = "MODULE_TEMPLATE_"
+project = "Crypto Project"
+project_url = "https://eclipse-score.github.io/inc_security_crypto"
+project_prefix = "CRYPTO_"
 author = "S-CORE"
 version = "0.1"
 
