@@ -1,0 +1,227 @@
+// =============================================================================
+//  C O P Y R I G H T
+// -----------------------------------------------------------------------------
+//  Copyright (c) 2025-2026 by ETAS GmbH. All rights reserved.
+//
+//  The reproduction, distribution and utilization of this file as
+//  well as the communication of its contents to others without express
+//  authorization is prohibited. Offenders will be held liable for the
+//  payment of damages. All rights reserved in the event of the grant
+//  of a patent, utility model or design.
+// =============================================================================
+
+#include "score/crypto/daemon/provider/score_provider/operations/hash/hash_executor.hpp"
+#include "score/crypto/daemon/provider/handler/operations/hash_handler_operations.hpp"
+#include "score/crypto/daemon/provider/handler/src/handler_utils.hpp"
+#include "score/crypto/daemon/provider/score_provider/operations/hash/score_hash_handler.hpp"
+
+namespace score::crypto::daemon::provider::score_provider::operations::hash
+{
+
+namespace handler = ::score::crypto::daemon::provider::handler;
+using common::DaemonErrorCode;
+using common::RequestParameters;
+using common::ResponseParameters;
+using common::StreamOperationState;
+
+Expected<ResponseParameters, DaemonErrorCode> HashExecutor::Execute(ScoreHashHandler& handler,
+                                                                    const common::OperationIdentifier& operationId,
+                                                                    RequestParameters& request)
+{
+    if (operationId.operationAction == handler::hash_handler_operations::HASH_GET_DIGEST_SIZE)
+    {
+        return GetDigestSize(handler, request);
+    }
+
+    if (operationId.operationAction == handler::hash_handler_operations::HASH_RESET)
+    {
+        auto result = ExecuteReset(handler, request);
+        if (!result.has_value())
+        {
+            return make_unexpected(result.error());
+        }
+        return ResponseParameters{};
+    }
+
+    if (operationId.operationAction == handler::hash_handler_operations::HASH_SS)
+    {
+        StreamOperationState state = handler.GetOperationState();
+        if (state != StreamOperationState::IDLE)
+        {
+            return make_unexpected(DaemonErrorCode::kOperationInProgress);
+        }
+        return ExecuteSingleShot(handler, request);
+    }
+
+    // Streaming operations: validate state machine transition
+    StreamOperationState currentState = handler.GetOperationState();
+    StreamOperationState nextState = StreamOperationState::IDLE;
+    const auto sequenceValidation = ValidateStreamTransition(operationId.operationAction, currentState, nextState);
+    if (!sequenceValidation.has_value())
+    {
+        return make_unexpected(sequenceValidation.error());
+    }
+
+    if (operationId.operationAction == handler::hash_handler_operations::HASH_FINISH)
+    {
+        auto result = ExecuteFinish(handler, request);
+        if (result.has_value())
+        {
+            handler.SetOperationState(nextState);
+        }
+        return result;
+    }
+
+    const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
+        if (operationId.operationAction == handler::hash_handler_operations::HASH_INIT)
+        {
+            return ExecuteStart(handler, request);
+        }
+        if (operationId.operationAction == handler::hash_handler_operations::HASH_UPDATE)
+        {
+            return ExecuteUpdate(handler, request);
+        }
+        return make_unexpected(DaemonErrorCode::kInvalidOperation);
+    }();
+
+    if (result.has_value())
+    {
+        handler.SetOperationState(nextState);
+    }
+    else
+    {
+        return make_unexpected(result.error());
+    }
+
+    return ResponseParameters{};
+}
+
+Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteStart(ScoreHashHandler& handler,
+                                                                     RequestParameters& request)
+{
+    std::optional<common::VirtualMemoryBufferConst> initialDataOrIV;
+    if (!request.empty())
+    {
+        if (auto* buf = std::get_if<common::VirtualMemoryBufferConst>(&request[0]))
+        {
+            initialDataOrIV.emplace(*buf);
+        }
+    }
+    return handler.StartHash(initialDataOrIV);
+}
+
+Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteUpdate(ScoreHashHandler& handler,
+                                                                      RequestParameters& request)
+{
+    if (request.empty())
+    {
+        return make_unexpected(DaemonErrorCode::kInsufficientParameters);
+    }
+
+    auto* buf = std::get_if<common::VirtualMemoryBufferConst>(&request[0]);
+    if (buf == nullptr)
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidDataType);
+    }
+
+    return handler.UpdateHash(*buf);
+}
+
+Expected<ResponseParameters, DaemonErrorCode> HashExecutor::ExecuteFinish(ScoreHashHandler& handler,
+                                                                          RequestParameters& request)
+{
+    std::optional<common::VirtualMemoryBuffer> output;
+    if (!request.empty())
+    {
+        if (auto* buf = std::get_if<common::VirtualMemoryBuffer>(&request[0]))
+        {
+            output.emplace(*buf);
+        }
+    }
+
+    std::optional<common::VirtualMemoryBufferConst> finalData;
+    if (request.size() > 1)
+    {
+        if (auto* buf = std::get_if<common::VirtualMemoryBufferConst>(&request[1]))
+        {
+            finalData.emplace(*buf);
+        }
+    }
+
+    return handler.FinalizeHash(output, finalData);
+}
+
+Expected<ResponseParameters, DaemonErrorCode> HashExecutor::ExecuteSingleShot(ScoreHashHandler& handler,
+                                                                              RequestParameters& request)
+{
+    if (request.empty())
+    {
+        return make_unexpected(DaemonErrorCode::kInsufficientParameters);
+    }
+
+    auto* data = std::get_if<common::VirtualMemoryBufferConst>(&request[0]);
+    if (data == nullptr)
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidDataType);
+    }
+
+    std::optional<common::VirtualMemoryBuffer> output;
+    if (request.size() > 1)
+    {
+        if (auto* buf = std::get_if<common::VirtualMemoryBuffer>(&request[1]))
+        {
+            output.emplace(*buf);
+        }
+    }
+
+    std::optional<common::VirtualMemoryBufferConst> iv;
+    if (request.size() > 2)
+    {
+        if (auto* buf = std::get_if<common::VirtualMemoryBufferConst>(&request[2]))
+        {
+            iv.emplace(*buf);
+        }
+    }
+
+    return handler.SingleShotHash(*data, output, iv);
+}
+
+Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteReset(ScoreHashHandler& handler,
+                                                                     RequestParameters& /*request*/)
+{
+    return handler.Reset();
+}
+
+Expected<ResponseParameters, DaemonErrorCode> HashExecutor::GetDigestSize(const ScoreHashHandler& handler,
+                                                                          RequestParameters& /*request*/)
+{
+    return handler.GetDigestSize();
+}
+
+// static
+Expected<std::monostate, DaemonErrorCode> HashExecutor::ValidateStreamTransition(
+    const common::OperationAction action,
+    const StreamOperationState currentState,
+    StreamOperationState& nextState)
+{
+    std::string_view opId;
+    if (action == handler::hash_handler_operations::HASH_INIT)
+    {
+        opId = "START";
+    }
+    else if (action == handler::hash_handler_operations::HASH_UPDATE)
+    {
+        opId = "UPDATE";
+    }
+    else if (action == handler::hash_handler_operations::HASH_FINISH)
+    {
+        opId = "FINISH";
+    }
+    else
+    {
+        return make_unexpected(DaemonErrorCode::kInvalidOperation);
+    }
+    return handler::handler_utils::ValidateStreamOperationSequence(currentState, opId, nextState);
+}
+
+}  // namespace score::crypto::daemon::provider::score_provider::operations::hash
