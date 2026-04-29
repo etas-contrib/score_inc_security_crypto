@@ -16,6 +16,14 @@ module(
 
 bazel_dep(name = "rules_python", version = "1.5.4")
 
+# Pin rules_python at 1.5.4: grpc 1.76.0 registers Python 3.14.0b2 which is
+# present in the rules_python 1.5.4 dictionary but was removed in 1.8.3.
+# score_baselibs 0.2.6 would otherwise pull in 1.8.3.
+single_version_override(
+    module_name = "rules_python",
+    version = "1.5.4",
+)
+
 PYTHON_VERSION = "3.12"
 
 python = use_extension("@rules_python//python/extensions:python.bzl", "python")
@@ -39,7 +47,7 @@ http_archive = use_repo_rule("@bazel_tools//tools/build_defs/repo:http.bzl", "ht
 # Constraint values for specifying platforms and toolchains
 # *******************************************************************************
 bazel_dep(name = "platforms", version = "1.0.0")
-bazel_dep(name = "score_bazel_platforms", version = "0.1.1")
+bazel_dep(name = "score_bazel_platforms", version = "0.1.2")
 
 # *******************************************************************************
 # C++ Rules for Bazel
@@ -169,7 +177,7 @@ single_version_override(
 )
 
 # FlatBuffers
-bazel_dep(name = "flatbuffers", version = "25.2.10")
+bazel_dep(name = "flatbuffers", version = "25.12.19")
 
 # *******************************************************************************
 # OpenSSL
@@ -214,18 +222,23 @@ filegroup(
 # ===============================================================================
 
 # tooling
-bazel_dep(name = "score_tooling", version = "1.1.2")
-bazel_dep(name = "aspect_rules_lint", version = "1.5.3")
+bazel_dep(name = "score_tooling", version = "1.2.0")
+bazel_dep(name = "aspect_rules_lint", version = "2.0.0")
 bazel_dep(name = "buildifier_prebuilt", version = "8.2.0.2")
 
-#docs-as-code
-bazel_dep(name = "score_docs_as_code", version = "2.2.0")
-
+# docs-as-code
+# workaround for bazel-compile-commands
+bazel_dep(name = "score_docs_as_code", version = "0.0.0")
+single_version_override(
+    module_name = "score_docs_as_code",
+    version = "2.2.0",
+)
 # GoogleTest
-bazel_dep(name = "googletest", version = "1.17.0")
+bazel_dep(name = "googletest", version = "1.17.0.bcr.2")
 
 # s-core baselibs
-bazel_dep(name = "score_baselibs", version = "0.1.3")
+bazel_dep(name = "score_baselibs", version = "0.2.6")
 
+bazel_dep(name = "score_communication", version = "0.2.1")
 # Integration testing
 bazel_dep(name = "score_itf", version = "0.1.0")

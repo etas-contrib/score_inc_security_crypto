@@ -1,0 +1,34 @@
+{
+    "serviceTypes": [
+        {
+            "serviceTypeName": "/score/crypto/poc/PocControlService",
+            "version": { "major": 1, "minor": 0 },
+            "bindings": [
+                {
+                    "binding": "SHM",
+                    "serviceId": 100,
+                    "methods": [
+                        { "methodName": "Execute", "methodId": 1 }
+                    ]
+                }
+            ]
+        }
+    ],
+    "serviceInstances": [
+        {
+            "instanceSpecifier": "poc/PocControlPort",
+            "serviceTypeName": "/score/crypto/poc/PocControlService",
+            "version": { "major": 1, "minor": 0 },
+            "instances": [
+                {
+                    "instanceId": 1,
+                    "asil-level": "QM",
+                    "binding": "SHM",
+                    "methods": [
+                        { "methodName": "Execute", "queueSize": 1 }
+                    ]
+                }
+            ]
+        }
+    ]
+}
