@@ -94,6 +94,8 @@ bazel test //tests/...
 bazel test //tests/... --test_output=all --cache_test_results=no
 ```
 
+Note: Run the `docker pull` command from a VS Code Terminal associated with the devcontainer. This properly sets up all environment variables, which may not be the case when just using docker to attach to the running container.
+
 ---
 
 ## 🛠 Tools & Linters
