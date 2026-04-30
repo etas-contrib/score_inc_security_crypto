@@ -137,9 +137,9 @@ using ResponseParameters = std::vector<ResponseParameter>;
 // Stream operation state for synchronous flow enforcement
 enum class StreamOperationState : std::uint8_t
 {
-    IDLE = 0,           // No operation in progress
-    STREAM_INIT = 1,    // INIT operation completed, stream ready
-    STREAM_ACTIVE = 2,  // Stream started and can be updated
+    IDLE = 0,                // No operation in progress
+    STREAM_INITIALIZED = 1,  // Init operation completed, stream ready for Update
+    STREAM_ACTIVE = 2,       // Stream active, accepting Update or Finalize
 };
 
 /**

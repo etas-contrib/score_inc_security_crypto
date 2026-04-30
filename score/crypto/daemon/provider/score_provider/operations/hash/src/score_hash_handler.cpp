@@ -48,7 +48,7 @@ Expected<std::monostate, DaemonErrorCode> ScoreHashHandler::Reset()
 // Default typed operations — return unsupported unless overridden
 // ---------------------------------------------------------------------------
 
-Expected<std::monostate, DaemonErrorCode> ScoreHashHandler::StartHash(
+Expected<std::monostate, DaemonErrorCode> ScoreHashHandler::InitHash(
     const std::optional<common::RequestParameter> /*initialDataOrIV*/)
 {
     return make_unexpected(DaemonErrorCode::kUnsupportedOperation);

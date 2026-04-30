@@ -180,7 +180,7 @@ Pkcs11MacHandler::InitializeContext(const handler::InitializationParams& init_pa
         }
 
         m_resolved_key = std::move(resolved);  // keeps the mutex locked for session objects
-        m_state = StreamOperationState::STREAM_INIT;
+        m_state = StreamOperationState::STREAM_INITIALIZED;
         m_init_params = init_params;  // Saved so Reset() can restore the key binding.
     }
 
@@ -202,7 +202,7 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
     m_state = StreamOperationState::IDLE;
 
     // Re-run InitializeContext with the saved params to restore the key binding
-    // and return to STREAM_INIT, matching the OpenSSL handler Reset() semantics.
+    // and return to STREAM_INITIALIZED, matching the OpenSSL handler Reset() semantics.
     return InitializeContext(m_init_params);
 }
 

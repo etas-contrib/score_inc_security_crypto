@@ -168,36 +168,36 @@ score::Result<std::size_t> HashContextImpl::Finalize(score::cpp::span<uint8_t> o
 
     auto control_req_result = proto::ControlRequestBuilder()
                                   .forDataNodeId(m_context_id)
-                                  .operation({actors::OP_ACTOR_HASH_HANDLER, hash_ops::HASH_FINISH})
+                                  .operation({actors::OP_ACTOR_HASH_HANDLER, hash_ops::HASH_FINALIZE})
                                   .build();
     if (!control_req_result.has_value())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_FINISH request";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_FINALIZE request";
         return score::Result<std::size_t>{
-            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_FINISH request")};
+            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_FINALIZE request")};
     }
 
-    // Send HASH_FINISH request to daemon
+    // Send HASH_FINALIZE request to daemon
     auto control_response_res = m_connection->SendRequest(control_req_result.value());
 
-    // Validate HASH_FINISH response
+    // Validate HASH_FINALIZE response
     auto validator = proto::ControlResponseValidator::FromResult(control_response_res);
-    validator.expectOperation({actors::OP_ACTOR_HASH_HANDLER, hash_ops::HASH_FINISH}).expectSuccess();
+    validator.expectOperation({actors::OP_ACTOR_HASH_HANDLER, hash_ops::HASH_FINALIZE}).expectSuccess();
 
     if (!validator.isValid())
     {
         score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
-            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINISH daemon response invalid")};
+            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINALIZE daemon response invalid")};
     }
 
     auto hash_result = validator.getParameterAt<proto::DataBufferReturn>(0, 0);
     if (!hash_result.has_value())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: HASH_FINISH response has invalid parameter type";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: HASH_FINALIZE response has invalid parameter type";
         return score::Result<std::size_t>{
             score::unexpect,
-            MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINISH response has invalid parameter type")};
+            MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINALIZE response has invalid parameter type")};
     }
 
     const auto& hash_data = hash_result.value();

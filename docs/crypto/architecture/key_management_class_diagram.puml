@@ -345,7 +345,7 @@ package "Provider Handler" <<Rectangle>> #FCE4EC {
         # m_state : StreamOperationState
         --
         + GetMacSize() : size_t
-        + StartMac(initialDataOrIV) : Expected<monostate>
+        + InitMac(initialDataOrIV) : Expected<monostate>
         + UpdateMac(request) : Expected<monostate>
         + FinalizeMac(output, finalData) : Expected<ResponseParameters>
         + VerifyMac(expectedTag) : Expected<bool>
@@ -364,7 +364,7 @@ package "Provider Handler" <<Rectangle>> #FCE4EC {
         + UpdateMac(request) : Expected<monostate>
         + FinalizeMac(output, finalData) : Expected<ResponseParameters>
         + VerifyMac(expectedTag) : Expected<bool>
-        + StartMac(initialDataOrIV) : Expected<monostate>
+        + InitMac(initialDataOrIV) : Expected<monostate>
         + {static} IsAlgorithmSupported(algorithm) : bool
     }
 }
@@ -402,7 +402,7 @@ package "Key Mgmt Executor" <<Rectangle>> #FFF8E7 {
         - HandleFinal(ctx, currentState, nextState, request)
         - HandleVerify(ctx, use_verify, currentState, nextState, request)
         - EnsureInitialized(session, mechanism, key_object, use_verify, currentState)
-        .. calls C_SignInit/C_VerifyInit only when STREAM_INIT ..
+        .. calls C_SignInit/C_VerifyInit only when STREAM_INITIALIZED ..
         - ExecuteSignInit / ExecuteSignUpdate / ExecuteSignFinal
         - ExecuteVerifyInit / ExecuteVerifyUpdate / ExecuteVerifyFinal
         - ExecuteSignSingleShot / ExecuteVerifySingleShot / ExecuteSignVerify

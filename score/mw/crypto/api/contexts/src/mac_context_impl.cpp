@@ -118,34 +118,34 @@ score::Result<std::size_t> MacContextImpl::Finalize(score::cpp::span<uint8_t> ou
 {
     auto control_req_result = proto::ControlRequestBuilder()
                                   .forDataNodeId(m_context_id)
-                                  .operation({actors::OP_ACTOR_MAC_HANDLER, mac_ops::MAC_FINAL})
+                                  .operation({actors::OP_ACTOR_MAC_HANDLER, mac_ops::MAC_FINALIZE})
                                   .build();
     if (!control_req_result.has_value())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_FINAL request";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_FINALIZE request";
         return score::Result<std::size_t>{
-            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_FINAL request")};
+            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_FINALIZE request")};
     }
 
     auto control_response_res = m_connection->SendRequest(control_req_result.value());
 
     auto validator = proto::ControlResponseValidator::FromResult(control_response_res);
-    validator.expectOperation({actors::OP_ACTOR_MAC_HANDLER, mac_ops::MAC_FINAL}).expectSuccess();
+    validator.expectOperation({actors::OP_ACTOR_MAC_HANDLER, mac_ops::MAC_FINALIZE}).expectSuccess();
 
     if (!validator.isValid())
     {
         score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
-            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINAL daemon response invalid")};
+            score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINALIZE daemon response invalid")};
     }
 
     auto mac_result = validator.getParameterAt<proto::DataBufferReturn>(0, 0);
     if (!mac_result.has_value())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: MAC_FINAL response has invalid parameter type";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: MAC_FINALIZE response has invalid parameter type";
         return score::Result<std::size_t>{
             score::unexpect,
-            MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINAL response has invalid parameter type")};
+            MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINALIZE response has invalid parameter type")};
     }
 
     const auto& mac_data = mac_result.value();

@@ -43,7 +43,7 @@ class OpenSslHashHandler final
     Expected<std::monostate, common::DaemonErrorCode> Reset() override;
 
     // ScoreHashHandler typed method overrides (OpenSSL crypto implementation)
-    Expected<std::monostate, common::DaemonErrorCode> StartHash(
+    Expected<std::monostate, common::DaemonErrorCode> InitHash(
         const std::optional<common::RequestParameter> initialDataOrIV) override;
     Expected<std::monostate, common::DaemonErrorCode> UpdateHash(const common::RequestParameter& dataToHash) override;
     Expected<common::ResponseParameters, common::DaemonErrorCode> FinalizeHash(

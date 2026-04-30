@@ -323,14 +323,14 @@ Step 4 — Perform MAC operations
 1. ``MediatorImpl::ForwardSingleOperation`` looks up the ``ContextDataNode``
    by ``context_node_id`` → ``MacHandlerImpl::Execute(MAC_UPDATE, params)``.
 2. ``MacExecutor::Execute`` validates the stream transition
-   (``IDLE → STREAM_INIT`` on first update; ``STREAM_INIT → STREAM_ACTIVE``
+   (``IDLE → STREAM_INITIALIZED`` on first update; ``STREAM_INITIALIZED → STREAM_ACTIVE``
    on subsequent updates) and calls ``MacHandlerImpl::UpdateMac(dataToMac)``.
 3. The handler extracts raw bytes via ``ExtractBufferData`` then calls
    ``HMAC_Update(m_ctx, data, len)`` to feed data into the running HMAC.
 
-``MAC_FINAL``:
+``MAC_FINALIZE``:
 
-1. ``MacExecutor`` validates ``STREAM_INIT/ACTIVE → IDLE`` transition.
+1. ``MacExecutor`` validates ``STREAM_INITIALIZED/ACTIVE → IDLE`` transition.
 2. ``MacHandlerImpl::FinalizeMac`` → ``HMAC_Final(m_ctx, output, &len)``
    writes the 32-byte HMAC-SHA256 tag into the client-provided
    ``VirtualMemoryBuffer``.
