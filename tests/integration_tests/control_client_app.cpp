@@ -440,17 +440,17 @@ TEST_P(ParameterizedHashStreamingTest, StreamingHashWithDifferentAlgorithmsAndDa
         .expectSuccess();
     ASSERT_TRUE(updateValidator2.isValid()) << updateValidator2.getError();
 
-    // 5. HASH_FINISH
+    // 5. HASH_FINALIZE
     auto finishResponse = daemon::control_plane::protocol::ControlRequestBuilder()
                               .forDataNodeId(context_id)
                               .operation({daemon::common::actors::OP_ACTOR_HASH_HANDLER,
-                                          daemon::provider::handler::hash_handler_operations::HASH_FINISH})
+                                          daemon::provider::handler::hash_handler_operations::HASH_FINALIZE})
                               .build();
 
     if (!finishResponse.has_value())
     {
         CloseContext(_connection.get(), context_id);
-        ASSERT_TRUE(false) << "Failed to build HASH_FINISH request";
+        ASSERT_TRUE(false) << "Failed to build HASH_FINALIZE request";
     }
 
     auto finishResponseRes = _connection->SendRequest(finishResponse.value());
@@ -459,7 +459,7 @@ TEST_P(ParameterizedHashStreamingTest, StreamingHashWithDifferentAlgorithmsAndDa
 
     finishValidator
         .expectOperation({daemon::common::actors::OP_ACTOR_HASH_HANDLER,
-                          daemon::provider::handler::hash_handler_operations::HASH_FINISH})
+                          daemon::provider::handler::hash_handler_operations::HASH_FINALIZE})
         .expectSuccess();
 
     ASSERT_TRUE(finishValidator.isValid()) << finishValidator.getError();

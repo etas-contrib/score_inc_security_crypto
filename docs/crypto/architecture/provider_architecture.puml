@@ -119,17 +119,17 @@ package "Provider Infrastructure (provider/)" <<Rectangle>> #F5F5F5 {
             ScoreHandlerFactory .up.|> ICryptoHandlerFactory
 
             abstract class ScoreHashHandler {
-                #StartHash(...) : Result<void>
+                #InitHash(...) : Result<void>
                 #UpdateHash(...) : Result<void>
-                #FinishHash(...) : Result<void>
+                #FinalizeHash(...) : Result<void>
                 -m_executor : HashExecutor
             }
             ScoreHashHandler .up.|> IHandler
 
             abstract class ScoreMacHandler {
-                #StartMac(...) : Result<void>
+                #InitMac(...) : Result<void>
                 #UpdateMac(...) : Result<void>
-                #FinishMac(...) : Result<void>
+                #FinalizeMac(...) : Result<void>
                 -m_executor : MacExecutor
             }
             ScoreMacHandler .up.|> IHandler

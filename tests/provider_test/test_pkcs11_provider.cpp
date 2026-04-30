@@ -274,14 +274,14 @@ TEST_F(Pkcs11ProviderHashTest, SHA256StreamingHash)
     auto update2Result = handler->Execute(MakeHashOp(ops::HASH_UPDATE), updateOp2);
     ASSERT_TRUE(update2Result.has_value()) << "HASH_UPDATE chunk2 failed";
 
-    // HASH_FINISH
+    // HASH_FINALIZE
     constexpr std::size_t kSha256DigestLen{32U};
     std::vector<std::uint8_t> outputBuffer(kSha256DigestLen);
 
     common::RequestParameters finishOp{};
     finishOp.push_back(common::VirtualMemoryBuffer{outputBuffer.data(), outputBuffer.size()});
-    auto finishResult = handler->Execute(MakeHashOp(ops::HASH_FINISH), finishOp);
-    ASSERT_TRUE(finishResult.has_value()) << "HASH_FINISH failed";
+    auto finishResult = handler->Execute(MakeHashOp(ops::HASH_FINALIZE), finishOp);
+    ASSERT_TRUE(finishResult.has_value()) << "HASH_FINALIZE failed";
 
     // Extract digest from response.
     const auto digest = ExtractDigest(finishResult.value());
@@ -319,14 +319,14 @@ TEST_F(Pkcs11ProviderHashTest, StreamStateViolation)
     auto updateResult = handler->Execute(MakeHashOp(ops::HASH_UPDATE), updateOp);
     EXPECT_FALSE(updateResult.has_value()) << "HASH_UPDATE without HASH_INIT should fail";
 
-    // HASH_FINISH without HASH_INIT should also fail.
+    // HASH_FINALIZE without HASH_INIT should also fail.
     std::vector<std::uint8_t> outBuf(32U);
 
     common::RequestParameters finishOp{};
     finishOp.push_back(common::VirtualMemoryBuffer{outBuf.data(), outBuf.size()});
 
-    auto finishResult = handler->Execute(MakeHashOp(ops::HASH_FINISH), finishOp);
-    EXPECT_FALSE(finishResult.has_value()) << "HASH_FINISH without active stream should fail";
+    auto finishResult = handler->Execute(MakeHashOp(ops::HASH_FINALIZE), finishOp);
+    EXPECT_FALSE(finishResult.has_value()) << "HASH_FINALIZE without active stream should fail";
 }
 
 // ---------------------------------------------------------------------------
@@ -397,15 +397,15 @@ TEST_F(Pkcs11ProviderHashTest, TrueConcurrentStreamingOnSeparateSessions)
     std::vector<std::uint8_t> outA(kSha256Len);
     common::RequestParameters finishA{};
     finishA.push_back(common::VirtualMemoryBuffer{outA.data(), outA.size()});
-    auto finA = handlerA->Execute(MakeHashOp(ops::HASH_FINISH), finishA);
-    ASSERT_TRUE(finA.has_value()) << "HASH_FINISH A failed";
+    auto finA = handlerA->Execute(MakeHashOp(ops::HASH_FINALIZE), finishA);
+    ASSERT_TRUE(finA.has_value()) << "HASH_FINALIZE A failed";
 
     constexpr std::size_t kSha384Len{48U};
     std::vector<std::uint8_t> outB(kSha384Len);
     common::RequestParameters finishB{};
     finishB.push_back(common::VirtualMemoryBuffer{outB.data(), outB.size()});
-    auto finB = handlerB->Execute(MakeHashOp(ops::HASH_FINISH), finishB);
-    ASSERT_TRUE(finB.has_value()) << "HASH_FINISH B failed";
+    auto finB = handlerB->Execute(MakeHashOp(ops::HASH_FINALIZE), finishB);
+    ASSERT_TRUE(finB.has_value()) << "HASH_FINALIZE B failed";
 
     // Both handlers digested "Hello, World!" -- verify correctness
     const auto digestA = ExtractDigest(finA.value());

@@ -154,7 +154,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     m_outputBuffer.clear();
 
     // TODO: When mediator is refactored, this needs to be revisted
-    //  Inject an internal output buffer for HASH_SS and HASH_FINISH when the
+    //  Inject an internal output buffer for HASH_SS and HASH_FINALIZE when the
     //  caller has not supplied one.  This mirrors the OpenSSL handler's behaviour
     //  of using an internal buffer and populating response.parameter on return.
     auto allocate_out_buffer = false;
@@ -162,7 +162,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     {
         allocate_out_buffer = true;
     }
-    else if ((operationId.operationAction == ops::HASH_FINISH) && request.empty())
+    else if ((operationId.operationAction == ops::HASH_FINALIZE) && request.empty())
     {
         allocate_out_buffer = true;
     }

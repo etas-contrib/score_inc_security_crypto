@@ -91,8 +91,8 @@ class ScoreHashHandler : public handler::Handler
     // Typed hash operations — override in concrete provider handlers
     // -----------------------------------------------------------------------
 
-    /// @brief Start/restart a hash operation on an existing initialized context.
-    [[nodiscard]] virtual Expected<std::monostate, common::DaemonErrorCode> StartHash(
+    /// @brief Initialize a hash operation on an existing context.
+    [[nodiscard]] virtual Expected<std::monostate, common::DaemonErrorCode> InitHash(
         const std::optional<common::RequestParameter> initialDataOrIV);
 
     /// @brief Add data to the active hash stream.
