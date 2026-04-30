@@ -85,7 +85,7 @@ bazel build //score/... --config=target_config_3
 ### 3️⃣ Run Tests
 
 ```sh
-# pre-requisite: pull ubuntu docker image (once)
+# pre-requisite: pull ubuntu docker image within devcontainer (once)
 docker pull ubuntu:24.04
 
 # host platform
@@ -93,6 +93,8 @@ bazel test //tests/...
 # with detailed output and no caching
 bazel test //tests/... --test_output=all --cache_test_results=no
 ```
+
+Note: Run the `docker pull` command from a VS Code Terminal associated with the devcontainer. This properly sets up all environment variables, which may not be the case when just using docker to attach to the running container.
 
 ---
 
@@ -140,6 +142,23 @@ PROJECT_CONFIG = {
 
 When used with macros like `dash_license_checker`, it allows dynamic selection of file types
  (e.g., `cargo`, `requirements`) based on the languages declared in `source_code`.
+
+## DevContainer Setup
+
+### Known Issue: Pre-commit Hook Not Running
+**Problem:** The pre-commit hook does not run when using `git commit` inside the DevContainer.
+
+**Cause:** A stale `core.hooksPath` configuration overrides the default hook lookup path.
+
+**Fix:** Unset the custom hooks path:
+
+```bash
+git config --unset core.hooksPath
+```
+
+Note: For a permanent fix, run this command on the **host machine** (outside the DevContainer).
+The DevContainer only receives a copy of the host's Git configuration at build time, so changes
+made inside the container will not persist after a rebuild.
 
 # Use of genAI in this repository
 The repository partially contains AI-generated code by using GitHub Copilot Business.
