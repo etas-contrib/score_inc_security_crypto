@@ -42,7 +42,7 @@ using OperationAction = common::OperationAction;
 //           param[0]: optional DataBuffer — initial data or IV
 // Response: status_code (SUCCESS/error)
 //           no output parameters
-// Effect:   Calls StartMac(), initializes MAC stream context, transitions state IDLE → INIT
+// Effect:   Calls InitMac(), initializes MAC stream context, transitions state IDLE → INITIALIZED
 inline constexpr OperationAction MAC_INIT = 1;
 
 // MAC_UPDATE
@@ -50,19 +50,19 @@ inline constexpr OperationAction MAC_INIT = 1;
 //           param[0]: DataBuffer — data to MAC
 // Response: status_code (SUCCESS/error)
 //           no output parameters
-// Effect:   Calls UpdateMac(data), processes data into stream, transitions state INIT/ACTIVE → ACTIVE
+// Effect:   Calls UpdateMac(data), processes data into stream, transitions state INITIALIZED/ACTIVE → ACTIVE
 inline constexpr OperationAction MAC_UPDATE = 2;
 
 // TODO: Do we need here a final chunk?
 
-// MAC_FINAL
+// MAC_FINALIZE
 // Request:  data_node_id = context_id,
 //           param[0]: optional DataBuffer — output buffer for MAC tag (This can only be a resolved SHM region)
 //           param[1]: optional DataBuffer — final data chunk to include
 // Response: status_code (SUCCESS/error)
 //           param[0]: DataBuffer — computed MAC tag bytes
 // Effect:   Calls FinalizeMac(), computes final MAC, clears stream context, transitions state → IDLE
-inline constexpr OperationAction MAC_FINAL = 3;
+inline constexpr OperationAction MAC_FINALIZE = 3;
 
 // MAC_VERIFY
 // Request:  data_node_id = context_id,

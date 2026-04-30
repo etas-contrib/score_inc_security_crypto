@@ -53,7 +53,7 @@ std::size_t ScoreMacHandler::GetMacSize() const noexcept
     return 0U;
 }
 
-Expected<std::monostate, DaemonErrorCode> ScoreMacHandler::StartMac(
+Expected<std::monostate, DaemonErrorCode> ScoreMacHandler::InitMac(
     const std::optional<common::RequestParameter> /*initialDataOrIV*/)
 {
     return make_unexpected(DaemonErrorCode::kUnsupportedOperation);

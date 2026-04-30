@@ -45,24 +45,24 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> Pkcs11H
     StreamOperationState& nextState) noexcept
 {
     namespace ops = handler::hash_handler_operations;
-    std::string_view opId;
+    handler::handler_utils::StreamOperation op{};
     if (action == ops::HASH_INIT)
     {
-        opId = "START";
+        op = handler::handler_utils::StreamOperation::kInit;
     }
     else if (action == ops::HASH_UPDATE)
     {
-        opId = "UPDATE";
+        op = handler::handler_utils::StreamOperation::kUpdate;
     }
-    else if (action == ops::HASH_FINISH)
+    else if (action == ops::HASH_FINALIZE)
     {
-        opId = "FINISH";
+        op = handler::handler_utils::StreamOperation::kFinalize;
     }
     else
     {
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidOperation);
     }
-    return handler::handler_utils::ValidateStreamOperationSequence(currentState, opId, nextState);
+    return handler::handler_utils::ValidateStreamOperationSequence(currentState, op, nextState);
 }
 
 Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkcs11HashExecutor::Execute(
@@ -110,7 +110,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     }
 
     // --- Dispatch to PKCS#11 call ---
-    if (operationAction == ops::HASH_FINISH)
+    if (operationAction == ops::HASH_FINALIZE)
     {
         auto result = ExecuteDigestFinal(ctx.session, request);
         if (!result.has_value())

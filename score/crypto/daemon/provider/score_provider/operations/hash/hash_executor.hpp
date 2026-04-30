@@ -41,13 +41,13 @@ class HashExecutor
         common::RequestParameters& request);
 
   private:
-    [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> ExecuteStart(ScoreHashHandler& handler,
-                                                                                 common::RequestParameters& request);
+    [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> ExecuteInit(ScoreHashHandler& handler,
+                                                                                common::RequestParameters& request);
 
     [[nodiscard]] Expected<std::monostate, common::DaemonErrorCode> ExecuteUpdate(ScoreHashHandler& handler,
                                                                                   common::RequestParameters& request);
 
-    [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> ExecuteFinish(
+    [[nodiscard]] Expected<common::ResponseParameters, common::DaemonErrorCode> ExecuteFinalize(
         ScoreHashHandler& handler,
         common::RequestParameters& request);
 

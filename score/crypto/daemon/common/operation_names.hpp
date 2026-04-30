@@ -26,7 +26,7 @@
 ///
 ///   // Write:
 ///   score::mw::log::LogDebug() << common::OpId{opId} ;
-///   // Output: "HASH_HANDLER::HASH_FINISH [actor=4, action=3]"
+///   // Output: "HASH_HANDLER::HASH_FINALIZE [actor=4, action=3]"
 /// @endcode
 ///
 /// ### Design notes
@@ -110,8 +110,8 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
                     return "HASH_INIT";
                 case hash_ops::HASH_UPDATE:
                     return "HASH_UPDATE";
-                case hash_ops::HASH_FINISH:
-                    return "HASH_FINISH";
+                case hash_ops::HASH_FINALIZE:
+                    return "HASH_FINALIZE";
                 case hash_ops::HASH_SS:
                     return "HASH_SS";
                 case hash_ops::HASH_GET_DIGEST_SIZE:
@@ -129,8 +129,8 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
                     return "MAC_INIT";
                 case mac_ops::MAC_UPDATE:
                     return "MAC_UPDATE";
-                case mac_ops::MAC_FINAL:
-                    return "MAC_FINAL";
+                case mac_ops::MAC_FINALIZE:
+                    return "MAC_FINALIZE";
                 case mac_ops::MAC_VERIFY:
                     return "MAC_VERIFY";
                 case mac_ops::MAC_GET_SIZE:

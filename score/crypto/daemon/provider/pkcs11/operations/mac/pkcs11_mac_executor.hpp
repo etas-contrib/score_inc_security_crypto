@@ -35,7 +35,7 @@ class Pkcs11Module;
 /// ### Operation mapping
 ///   MAC_INIT    → C_SignInit  (eagerly, moves to STREAM_ACTIVE)
 ///   MAC_UPDATE  → C_SignUpdate
-///   MAC_FINAL   → C_SignFinal  (returns MAC bytes)
+///   MAC_FINALIZE → C_SignFinal  (returns MAC bytes)
 ///   MAC_VERIFY  → C_SignFinal  + constant-time compare with expected tag
 ///   MAC_SS      → C_SignInit + C_SignUpdate + C_SignFinal (single-shot)
 ///
@@ -48,11 +48,11 @@ class Pkcs11Module;
 ///   C_VerifyUpdate / C_VerifyFinal) that require only CKA_VERIFY=true and
 ///   avoid materialising the computed tag.  Full use of C_Verify* for the
 ///   streaming path would require knowing at MAC_INIT time whether the
-///   operation will end with MAC_FINAL or MAC_VERIFY — which in turn requires
+///   operation will end with MAC_FINALIZE or MAC_VERIFY — which in turn requires
 ///   either a dual-context approach or deferred init.
 ///
 ///   ExecuteVerifyInit / ExecuteVerifyFinal are provided as first-class
-///   wrappers for the direct-verify (STREAM_INIT → MAC_VERIFY) path and
+///   wrappers for the direct-verify (STREAM_INITIALIZED → MAC_VERIFY) path and
 ///   future dual-context support.
 ///
 /// ### C_SignInit placement
@@ -75,7 +75,7 @@ class Pkcs11MacExecutor final
     /// @brief Dispatch a MAC operation to the corresponding C_Sign* or C_Verify* call(s).
     ///
     /// @param ctx              Stable per-context parameters (session, mechanism, key, mac_size, mode).
-    /// @param operationAction  MAC operation action (MAC_UPDATE, MAC_FINAL, etc.).
+    /// @param operationAction  MAC operation action (MAC_UPDATE, MAC_FINALIZE, etc.).
     /// @param request          Operation config with input/output parameters.
     /// @param currentState     Current streaming state of the handler.
     /// @param nextState        Output: the state the handler should transition to on success.
@@ -101,7 +101,7 @@ class Pkcs11MacExecutor final
                              common::StreamOperationState& nextState) noexcept;
 
     /// @brief Call C_SignInit or C_VerifyInit depending on use_verify.
-    ///        Calls C_SignInit when STREAM_INIT (deferred init from InitializeContext);
+    ///        Calls C_SignInit when STREAM_INITIALIZED (deferred init from InitializeContext);
     ///        no-op when STREAM_ACTIVE (already initialised via MAC_INIT).
     [[nodiscard]] Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> EnsureInitialized(
         CK_SESSION_HANDLE session,
@@ -162,7 +162,7 @@ class Pkcs11MacExecutor final
 
     /// @brief Compute MAC over streamed data and compare with expected tag (constant-time).
     ///        MAC_VERIFY always receives exactly one parameter: the expected tag.
-    ///        When need_init is true (STREAM_INIT), C_SignInit is called first
+    ///        When need_init is true (STREAM_INITIALIZED), C_SignInit is called first
     ///        (HMAC of empty data); when false (STREAM_ACTIVE), data was already
     ///        fed via C_SignUpdate — this call finalises and compares.
     ///

@@ -43,7 +43,7 @@ using OperationAction = common::OperationAction;
 //           param[0]: optional DataBuffer — initial data to hash or IV
 // Response: status_code (SUCCESS/error)
 //           no output parameters
-// Effect:   Calls StartHash(), initializes hash stream context, transitions state IDLE → INIT
+// Effect:   Calls InitHash(), initializes hash stream context, transitions state IDLE → INITIALIZED
 inline constexpr OperationAction HASH_INIT = 1;
 
 // HASH_UPDATE
@@ -51,17 +51,17 @@ inline constexpr OperationAction HASH_INIT = 1;
 //           param[0]: DataBuffer — data to hash
 // Response: status_code (SUCCESS/error)
 //           no output parameters
-// Effect:   Calls UpdateHash(data), processes data into stream, transitions state INIT/ACTIVE → ACTIVE
+// Effect:   Calls UpdateHash(data), processes data into stream, transitions state INITIALIZED/ACTIVE → ACTIVE
 inline constexpr OperationAction HASH_UPDATE = 2;
 
-// HASH_FINISH
+// HASH_FINALIZE
 // Request:  data_node_id = context_id,
 //           param[0]: optional DataBuffer — output buffer for hash digest
 //           param[1]: optional DataBuffer — final data chunk to include
 // Response: status_code (SUCCESS/error)
 //           param[0]: DataBuffer — computed hash digest bytes
 // Effect:   Calls FinalizeHash(), computes final hash, clears stream context, transitions state → IDLE
-inline constexpr OperationAction HASH_FINISH = 3;
+inline constexpr OperationAction HASH_FINALIZE = 3;
 
 // HASH_SS (Single-Shot Hash)
 // Request:  data_node_id = context_id,
