@@ -11,11 +11,25 @@
 # =============================================================================
 
 load("@score_docs_as_code//:docs.bzl", "docs")
-load("@score_tooling//:defs.bzl", "use_format_targets")
-
-# Add target for formatting checks
-# use_format_targets()
+load("@score_tooling//:defs.bzl", "copyright_checker", "use_format_targets")
 
 docs(
     source_dir = "docs",
 )
+
+copyright_checker(
+    name = "copyright",
+    srcs = [
+        # ".github",
+        "docs",
+        "score",
+        "third_party",
+        "//:BUILD",
+        "//:MODULE.bazel",
+    ],
+    config = "@score_tooling//cr_checker/resources:config",
+    template = "@score_tooling//cr_checker/resources:templates",
+    visibility = ["//visibility:public"],
+)
+
+use_format_targets()
