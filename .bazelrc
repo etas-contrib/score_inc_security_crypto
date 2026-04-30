@@ -18,16 +18,23 @@ build --tool_java_language_version=17
 build --java_runtime_version=remotejdk_17
 build --tool_java_runtime_version=remotejdk_17
 
-# Only contact license server every 59 secs per tool and not for every tool invocation to avoid flooding the license server
+# Only contact license server every 59 secs per tool
 common --action_env=QNX_LICENSE_EXTSERVER_DELAY=59
-#common --action_env=QNX_LICENSE_QUEUE_TIMEOUT=300 # If not reach retry in 60seconds for overall 300 (configured) seconds
-# Disable for the moment as this leads to "warning: Cannot find Build server key, the value of QNX_LICENSE_QUEUE_TIMEOUT will be ignored."
 
 test --test_output=errors
 
 # Bazel registry configuration
 common --registry=https://raw.githubusercontent.com/eclipse-score/bazel_registry/main/
 common --registry=https://bcr.bazel.build
+
+# score_communication + score_baselibs integration flags
+common --@score_baselibs//score/json:base_library=nlohmann
+common --@score_communication//score/mw/com/flags:tracing_library=@score_baselibs//score/analysis/tracing/generic_trace_library/stub_implementation
+
+# score_baselibs deprecated StringLiteral, but it is still referenced
+common --per_file_copt=external/score_baselibs[^/]*/.*@-Wno-deprecated-declarations
+common --per_file_copt=external/score_communication[^/]*/.*@-Wno-deprecated-declarations
+
 # QNX credential helper configuration
 common --credential_helper=*.qnx.com=%workspace%/.github/tools/qnx_credential_helper.py
 common --credential_helper_timeout="60s"
