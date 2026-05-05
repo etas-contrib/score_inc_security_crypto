@@ -28,9 +28,10 @@
 #include "score/result/result.h"
 #include "score/span.hpp"
 
+#include "score/mw/log/logging.h"
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
+
 #include <memory>
 #include <optional>
 #include <utility>
@@ -69,7 +70,8 @@ class KeyManagementContextImpl::ContextReleaseCallbackImpl final : public IRelea
     {
         if (!m_connection)
         {
-            std::cerr << "[API][KeyMgmtContextImpl] ERROR: Connection is not initialized during CTX_CLOSE\n";
+            score::mw::log::LogError()
+                << "[API][KeyMgmtContextImpl] ERROR: Connection is not initialized during CTX_CLOSE";
             return;
         }
 
@@ -80,7 +82,7 @@ class KeyManagementContextImpl::ContextReleaseCallbackImpl final : public IRelea
 
         if (!context_close_res.has_value())
         {
-            std::cerr << "[API][KeyMgmtContextImpl] ERROR: Failed to build CTX_CLOSE request\n";
+            score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: Failed to build CTX_CLOSE request";
             return;
         }
 
@@ -91,8 +93,8 @@ class KeyManagementContextImpl::ContextReleaseCallbackImpl final : public IRelea
 
         if (!validator.isValid())
         {
-            std::cerr << "[API][KeyMgmtContextImpl] ERROR: CTX_CLOSE response validation failed: "
-                      << validator.getError() << "\n";
+            score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: CTX_CLOSE response validation failed: "
+                                       << validator.getError();
             return;
         }
     }
@@ -131,7 +133,7 @@ class KeyManagementContextImpl::ReleaseCallbackImpl final : public IReleaseCallb
                                       .build();
         if (!control_req_result.has_value())
         {
-            std::cerr << "[API][KeyMgmtRelease] ERROR: Failed to build KEY_RELEASE request\n";
+            score::mw::log::LogError() << "[API][KeyMgmtRelease] ERROR: Failed to build KEY_RELEASE request";
             return score::Result<std::monostate>{
                 score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build KEY_RELEASE request")};
         }
@@ -143,7 +145,7 @@ class KeyManagementContextImpl::ReleaseCallbackImpl final : public IReleaseCallb
 
         if (!validator.isValid())
         {
-            std::cerr << "[API][KeyMgmtRelease] ERROR: " << validator.getError() << "\n";
+            score::mw::log::LogError() << "[API][KeyMgmtRelease] ERROR: " << validator.getError();
             return score::Result<std::monostate>{
                 score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "KEY_RELEASE daemon response invalid")};
         }
@@ -184,7 +186,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::GenerateKey(const G
 
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: Failed to build KEY_GENERATE request\n";
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: Failed to build KEY_GENERATE request";
         return score::Result<CryptoResourceGuard>{
             score::unexpect, MakeError(CryptoErrorCode::kKeyGenerationFailed, "Failed to build KEY_GENERATE request")};
     }
@@ -196,7 +198,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::GenerateKey(const G
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: " << validator.getError();
         return score::Result<CryptoResourceGuard>{
             score::unexpect, MakeError(CryptoErrorCode::kKeyGenerationFailed, "KEY_GENERATE daemon response invalid")};
     }
@@ -205,7 +207,8 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::GenerateKey(const G
     auto resource_id_result = validator.getParameterAt<std::uint64_t>(0, 0);
     if (!resource_id_result.has_value())
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: KEY_GENERATE response has invalid resource_id type\n";
+        score::mw::log::LogError()
+            << "[API][KeyMgmtContextImpl] ERROR: KEY_GENERATE response has invalid resource_id type";
         return score::Result<CryptoResourceGuard>{
             score::unexpect,
             MakeError(CryptoErrorCode::kKeyGenerationFailed, "KEY_GENERATE response has invalid resource_id type")};
@@ -230,7 +233,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::LoadKey(const Crypt
 {
     if (slot.type != ResourceType::kKeySlot)
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: LoadKey called with invalid slot resource type\n";
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: LoadKey called with invalid slot resource type";
         return score::Result<CryptoResourceGuard>{
             score::unexpect,
             MakeError(CryptoErrorCode::kInvalidArgument, "LoadKey called with invalid slot resource type")};
@@ -244,7 +247,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::LoadKey(const Crypt
 
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: Failed to build KEY_LOAD request\n";
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: Failed to build KEY_LOAD request";
         return score::Result<CryptoResourceGuard>{
             score::unexpect, MakeError(CryptoErrorCode::kInternalError, "Failed to build KEY_LOAD request")};
     }
@@ -256,7 +259,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::LoadKey(const Crypt
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: " << validator.getError();
         return score::Result<CryptoResourceGuard>{
             score::unexpect, MakeError(CryptoErrorCode::kInternalError, "KEY_LOAD daemon response invalid")};
     }
@@ -265,7 +268,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::LoadKey(const Crypt
     auto resource_id_result = validator.getParameterAt<std::uint64_t>(0, 0);
     if (!resource_id_result.has_value())
     {
-        std::cerr << "[API][KeyMgmtContextImpl] ERROR: KEY_LOAD response has invalid resource_id type\n";
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: KEY_LOAD response has invalid resource_id type";
         return score::Result<CryptoResourceGuard>{
             score::unexpect,
             MakeError(CryptoErrorCode::kInternalError, "KEY_LOAD response has invalid resource_id type")};
@@ -294,7 +297,7 @@ score::Result<std::monostate> KeyManagementContextImpl::GenerateKey(
     const std::optional<CryptoResourceId>& /*public_slot*/,
     const GenerateKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: GenerateKey with target_slot not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: GenerateKey with target_slot not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect,
         MakeError(CryptoErrorCode::kUnsupportedOperation, "GenerateKey with target_slot not yet implemented")};
@@ -302,7 +305,7 @@ score::Result<std::monostate> KeyManagementContextImpl::GenerateKey(
 
 score::Result<CryptoResourceGuard> KeyManagementContextImpl::DeriveKey(const DeriveKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: DeriveKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: DeriveKey not yet implemented";
     return score::Result<CryptoResourceGuard>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "DeriveKey not yet implemented")};
 }
@@ -310,14 +313,14 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::DeriveKey(const Der
 score::Result<std::monostate> KeyManagementContextImpl::DeriveKey(const CryptoResourceId& /*target_slot*/,
                                                                   const DeriveKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: DeriveKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: DeriveKey not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "DeriveKey not yet implemented")};
 }
 
 score::Result<CryptoResourceGuard> KeyManagementContextImpl::AgreeKey(const AgreeKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: AgreeKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: AgreeKey not yet implemented";
     return score::Result<CryptoResourceGuard>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "AgreeKey not yet implemented")};
 }
@@ -325,7 +328,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::AgreeKey(const Agre
 score::Result<std::monostate> KeyManagementContextImpl::AgreeKey(const CryptoResourceId& /*target_slot*/,
                                                                  const AgreeKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: AgreeKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: AgreeKey not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "AgreeKey not yet implemented")};
 }
@@ -333,14 +336,14 @@ score::Result<std::monostate> KeyManagementContextImpl::AgreeKey(const CryptoRes
 score::Result<std::monostate> KeyManagementContextImpl::PersistKey(const CryptoResourceId& /*target_slot*/,
                                                                    const CryptoResourceId& /*ephemeral_key*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: PersistKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: PersistKey not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "PersistKey not yet implemented")};
 }
 
 score::Result<CryptoResourceGuard> KeyManagementContextImpl::UnwrapKey(const UnwrapKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: UnwrapKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: UnwrapKey not yet implemented";
     return score::Result<CryptoResourceGuard>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "UnwrapKey not yet implemented")};
 }
@@ -348,14 +351,14 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::UnwrapKey(const Unw
 score::Result<std::monostate> KeyManagementContextImpl::UnwrapKey(const CryptoResourceId& /*target_slot*/,
                                                                   const UnwrapKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: UnwrapKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: UnwrapKey not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "UnwrapKey not yet implemented")};
 }
 
 score::Result<CryptoResourceGuard> KeyManagementContextImpl::ImportKey(const ImportKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: ImportKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: ImportKey not yet implemented";
     return score::Result<CryptoResourceGuard>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "ImportKey not yet implemented")};
 }
@@ -363,7 +366,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::ImportKey(const Imp
 score::Result<std::monostate> KeyManagementContextImpl::ImportKey(const CryptoResourceId& /*target_slot*/,
                                                                   const ImportKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: ImportKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: ImportKey not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "ImportKey not yet implemented")};
 }
@@ -371,14 +374,14 @@ score::Result<std::monostate> KeyManagementContextImpl::ImportKey(const CryptoRe
 score::Result<std::size_t> KeyManagementContextImpl::WrapKey(const WrapKeyParams& /*params*/,
                                                              score::cpp::span<uint8_t> /*output*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: WrapKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: WrapKey not yet implemented";
     return score::Result<std::size_t>{score::unexpect,
                                       MakeError(CryptoErrorCode::kUnsupportedOperation, "WrapKey not yet implemented")};
 }
 
 score::Result<std::size_t> KeyManagementContextImpl::GetWrapKeySize(const WrapKeyParams& /*params*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: GetWrapKeySize not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: GetWrapKeySize not yet implemented";
     return score::Result<std::size_t>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "GetWrapKeySize not yet implemented")};
 }
@@ -387,7 +390,7 @@ score::Result<std::size_t> KeyManagementContextImpl::ExportKey(const CryptoResou
                                                                score::cpp::span<uint8_t> /*output*/,
                                                                FormatType /*format*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: ExportKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: ExportKey not yet implemented";
     return score::Result<std::size_t>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "ExportKey not yet implemented")};
 }
@@ -395,21 +398,21 @@ score::Result<std::size_t> KeyManagementContextImpl::ExportKey(const CryptoResou
 score::Result<std::size_t> KeyManagementContextImpl::GetExportKeySize(const CryptoResourceId& /*key*/,
                                                                       FormatType /*format*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: GetExportKeySize not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: GetExportKeySize not yet implemented";
     return score::Result<std::size_t>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "GetExportKeySize not yet implemented")};
 }
 
 score::Result<std::monostate> KeyManagementContextImpl::ClearKey(const CryptoResourceId& /*key*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: ClearKey not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: ClearKey not yet implemented";
     return score::Result<std::monostate>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "ClearKey not yet implemented")};
 }
 
 score::Result<KeySlotInfo> KeyManagementContextImpl::GetKeySlotInfo(const CryptoResourceId& /*slot*/)
 {
-    std::cerr << "[API][KeyMgmtContextImpl] ERROR: GetKeySlotInfo not yet implemented\n";
+    score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: GetKeySlotInfo not yet implemented";
     return score::Result<KeySlotInfo>{
         score::unexpect, MakeError(CryptoErrorCode::kUnsupportedOperation, "GetKeySlotInfo not yet implemented")};
 }

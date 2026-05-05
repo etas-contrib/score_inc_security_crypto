@@ -31,5 +31,6 @@ cc_library(
         "//score/crypto/common:common_types",
         "//score/crypto/daemon/common",
         "//score/crypto/daemon/provider/handler:handler_headers",
+        "@score_baselibs//score/mw/log",
     ],
 )

@@ -15,7 +15,8 @@
 #include "score/crypto/daemon/key_management/slot/deployment/deployment_path_utils.hpp"
 #include "score/crypto/daemon/key_management/slot/deployment/kv/kv_deployment_loader.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <string>
 
 namespace score::crypto::daemon::key_management
@@ -27,7 +28,7 @@ score::crypto::Expected<SlotDeploymentInfo, score::crypto::daemon::common::Daemo
 {
     if (!IsDeploymentPathSafe(path))
     {
-        std::cerr << LOG_PREFIX << "Unsafe deployment path rejected: " << path << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "Unsafe deployment path rejected: " << path << '\n';
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -38,7 +39,7 @@ score::crypto::Expected<SlotDeploymentInfo, score::crypto::daemon::common::Daemo
     // To add a new format: include its header above and add a branch here.
     // Example: if (format == "json") { return JsonDeploymentLoader{}.Load(path); }
 
-    std::cerr << LOG_PREFIX << "Unsupported deployment format: " << format << '\n';
+    score::mw::log::LogError() << LOG_PREFIX << "Unsupported deployment format: " << format << '\n';
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
 }
 

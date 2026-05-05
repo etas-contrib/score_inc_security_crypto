@@ -18,7 +18,7 @@
 #include "score/crypto/daemon/provider/pkcs11/pkcs11_provider.hpp"
 #include "score/crypto/daemon/provider/pkcs11/pkcs11_session_guard.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::provider::pkcs11
 {
@@ -81,7 +81,7 @@ Pkcs11KeyFactory::GenerateKey(const key_management::KeyGenerationRequest& reques
     const auto algo_info = detail::LookupAlgorithm(request.algorithm);
     if (!algo_info.has_value())
     {
-        std::cerr << LOG_PREFIX << "GenerateKey: unsupported algorithm '" << request.algorithm << "'\n";
+        score::mw::log::LogError() << LOG_PREFIX << "GenerateKey: unsupported algorithm '" << request.algorithm << "'";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -136,7 +136,8 @@ Pkcs11KeyFactory::GenerateKey(const key_management::KeyGenerationRequest& reques
     const CK_RV rv = fns->C_GenerateKey(session, &mechanism, attrs, sizeof(attrs) / sizeof(attrs[0]), &object);
     if (rv != CKR_OK)
     {
-        std::cerr << LOG_PREFIX << "C_GenerateKey failed: rv=" << static_cast<unsigned long>(rv) << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "C_GenerateKey failed: rv=" << static_cast<unsigned long>(rv)
+                                   << '\n';
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kOperationFailed);
     }
 

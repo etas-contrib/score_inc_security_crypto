@@ -21,9 +21,10 @@
 #include "flatbuffers/grpc.h"
 #include <grpcpp/grpcpp.h>
 
+#include "score/mw/log/logging.h"
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
+
 #include <memory>
 #include <string_view>
 #include <thread>
@@ -59,24 +60,27 @@ grpc::Status GrpcControlServiceAdapter::Execute(
     // Convert FlatBuffer → Business Logic
     auto bl_req = ConvertRequest(fb_req);
 
-    std::cout << "[GrpcControlServiceAdapter] [Server Thread " << std::this_thread::get_id() << "] "
-              << "Processing request with RequestID: " << bl_req.request_id << " | User Id: " << bl_req.client_id
-              << " | DataNodeId: " << bl_req.data_node_id << "\n";
+    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread "
+                               << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+                               << "Processing request with RequestID: " << bl_req.request_id
+                               << " | User Id: " << bl_req.client_id << " | DataNodeId: " << bl_req.data_node_id;
 
     // Lazy initialization: create handler for this thread on first request
     if (!_thread_handler)
     {
-        std::cout << "[GrpcControlServiceAdapter] [Server Thread " << std::this_thread::get_id() << "] "
-                  << "Initializing thread-local request handler\n";
+        score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread "
+                                   << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+                                   << "Initializing thread-local request handler";
         _thread_handler = _factory->CreateRequestHandler();
     }
 
     // Execute business logic (transport-agnostic)
     auto bl_resp = _thread_handler->processRequest(bl_req);
 
-    std::cout << "[GrpcControlServiceAdapter] [Server Thread " << std::this_thread::get_id() << "] "
-              << "Processed request, returning response with RequestID: " << bl_resp.request_id
-              << " (Request had: " << bl_req.request_id << ")\n";
+    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread "
+                               << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+                               << "Processed request, returning response with RequestID: " << bl_resp.request_id
+                               << " (Request had: " << bl_req.request_id << ")";
 
     // Convert Business Logic → FlatBuffer
     ConvertResponse(bl_resp, response);
@@ -262,7 +266,7 @@ GrpcControlServiceAdapter::BuildResponseParameters(const daemon::common::Respons
             // In case we end up here, we may need to implemented serialization / deserializazion
             // for the concrete type.
 
-            std::cerr << "[GrpcControlServiceAdapter] ERROR - Unsupported parameter type in response\n";
+            score::mw::log::LogError() << "[GrpcControlServiceAdapter] ERROR - Unsupported parameter type in response";
             // Skip unsupported parameter types
             continue;
         }
@@ -378,8 +382,8 @@ daemon::common::RequestParameters GrpcControlServiceAdapter::ExtractRequestParam
                 // In case we end up here, we may need to implemented serialization / deserializazion
                 // for the concrete type.
 
-                std::cerr << "[GrpcControlServiceAdapter] ERROR - Unsupported parameter type: "
-                          << static_cast<int>(param_type) << "\n";
+                score::mw::log::LogError() << "[GrpcControlServiceAdapter] ERROR - Unsupported parameter type: "
+                                           << static_cast<int>(param_type);
                 break;
             }
         }

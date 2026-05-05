@@ -21,9 +21,10 @@
 #include "flatbuffers/grpc.h"
 #include <grpcpp/grpcpp.h>
 
+#include "score/mw/log/logging.h"
 #include <cstddef>
 #include <cstdint>
-#include <iostream>
+
 #include <memory>
 #include <string>
 #include <string_view>
@@ -88,9 +89,10 @@ GrpcControlClient::SendRequest(const daemon::control_plane::protocol::ControlReq
 
     if (!status.ok())
     {
-        std::cerr << "[GrpcControlClient] [Thread " << std::this_thread::get_id() << "] "
-                  << "gRPC call failed for RequestID: " << request.request_id << " | Error: " << status.error_message()
-                  << "\n";
+        score::mw::log::LogError() << "[GrpcControlClient] [Thread "
+                                   << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+                                   << "gRPC call failed for RequestID: " << request.request_id
+                                   << " | Error: " << status.error_message();
         return make_unexpected(score::mw::crypto::CryptoErrorCode::kInternalError);
     }
     // Convert FlatBuffer response → business logic
@@ -98,7 +100,7 @@ GrpcControlClient::SendRequest(const daemon::control_plane::protocol::ControlReq
 
     if (enhanced_request.request_id != response.request_id)
     {
-        std::cerr << " [MISMATCH!] RequestID mismatch - received: \n";
+        score::mw::log::LogError() << " [MISMATCH!] RequestID mismatch - received: ";
         return make_unexpected(score::mw::crypto::CryptoErrorCode::kInternalError);
     }
 
@@ -310,8 +312,8 @@ daemon::common::ResponseParameters GrpcControlClient::Impl::ExtractResponseParam
                 // In case we end up here, we may need to implemented serialization / deserializazion
                 // for the concrete type.
 
-                std::cerr << "[GrpcControlClient] ERROR - Unsupported parameter type: " << static_cast<int>(param_type)
-                          << "\n";
+                score::mw::log::LogError()
+                    << "[GrpcControlClient] ERROR - Unsupported parameter type: " << static_cast<int>(param_type);
                 break;
             }
         }
@@ -401,7 +403,7 @@ GrpcControlClient::Impl::BuildRequestParameters(const daemon::common::RequestPar
             // In case we end up here, we may need to implemented serialization / deserializazion
             // for the concrete type.
 
-            std::cerr << "[GrpcControlClient] ERROR - Unsupported parameter type in request\n";
+            score::mw::log::LogError() << "[GrpcControlClient] ERROR - Unsupported parameter type in request";
             // Skip unsupported parameter types
             continue;
         }

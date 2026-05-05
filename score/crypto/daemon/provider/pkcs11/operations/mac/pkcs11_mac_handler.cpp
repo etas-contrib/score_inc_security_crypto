@@ -17,7 +17,8 @@
 #include "score/crypto/daemon/provider/pkcs11/operations/key_management/pkcs11_key_management_handler.hpp"
 #include "score/crypto/daemon/provider/pkcs11/pkcs11_provider.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <variant>
 
 namespace score::crypto::daemon::provider::pkcs11
@@ -119,7 +120,7 @@ Pkcs11MacHandler::InitializeContext(const handler::InitializationParams& init_pa
     }
     if (!found)
     {
-        std::cerr << LOG_PREFIX << "Unsupported algorithm: " << m_algorithm << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "Unsupported algorithm: " << m_algorithm << '\n';
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedAlgorithm);
     }
 
@@ -136,9 +137,10 @@ Pkcs11MacHandler::InitializeContext(const handler::InitializationParams& init_pa
         // Provider-id check validates the key comes from the same provider (no dynamic_cast/RTTI).
         if (init_params.bound_key_handler->GetProviderId() != init_params.provider_id)
         {
-            std::cerr << LOG_PREFIX << "Bound key provider ID " << init_params.bound_key_handler->GetProviderId()
-                      << " does not match expected provider ID " << init_params.provider_id << '\n';
-            std::cerr << LOG_PREFIX << "InitializeContext: bound key is not a PKCS#11 key handler\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Bound key provider ID "
+                                       << init_params.bound_key_handler->GetProviderId()
+                                       << " does not match expected provider ID " << init_params.provider_id << '\n';
+            score::mw::log::LogError() << LOG_PREFIX << "InitializeContext: bound key is not a PKCS#11 key handler";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
 
@@ -151,12 +153,12 @@ Pkcs11MacHandler::InitializeContext(const handler::InitializationParams& init_pa
         Pkcs11KeyStore::ResolvedKey resolved = pkcs11_key->ResolveObject(m_session);
         if (resolved.contended)
         {
-            std::cerr << LOG_PREFIX << "InitializeContext: key is already in use by another handler\n";
+            score::mw::log::LogError() << LOG_PREFIX << "InitializeContext: key is already in use by another handler";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kResourceBusy);
         }
         if (!resolved.IsValid())
         {
-            std::cerr << LOG_PREFIX << "InitializeContext: failed to resolve key object handle\n";
+            score::mw::log::LogError() << LOG_PREFIX << "InitializeContext: failed to resolve key object handle";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
 
@@ -240,7 +242,8 @@ score::crypto::Expected<ResponseParameters, score::crypto::daemon::common::Daemo
 
     if (m_ctx.key_object == CK_INVALID_HANDLE)
     {
-        std::cerr << LOG_PREFIX << "Execute: no key bound - call InitializeContext with keyOpaqueId first\n";
+        score::mw::log::LogError() << LOG_PREFIX
+                                   << "Execute: no key bound - call InitializeContext with keyOpaqueId first";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kStreamNotInitialized);
     }
 

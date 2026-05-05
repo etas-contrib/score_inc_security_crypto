@@ -22,10 +22,10 @@
 /// ### Usage
 /// @code
 ///   // Instead of:
-///   std::cout << "action=" << opId.operationAction << "\n";
+///   score::mw::log::LogDebug() << "action=" << opId.operationAction ;
 ///
 ///   // Write:
-///   std::cout << common::OpId{opId} << "\n";
+///   score::mw::log::LogDebug() << common::OpId{opId} ;
 ///   // Output: "HASH_HANDLER::HASH_FINISH [actor=4, action=3]"
 /// @endcode
 ///
@@ -43,6 +43,7 @@
 #include "score/crypto/daemon/provider/handler/operations/hash_handler_operations.hpp"
 #include "score/crypto/daemon/provider/handler/operations/mac_handler_operations.hpp"
 
+#include "score/mw/log/logging.h"
 #include <ostream>
 #include <string_view>
 
@@ -198,7 +199,7 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
 /// for custom or future operations not yet registered in ActionName().
 ///
 /// @code
-///   std::cout << "[MED] dispatching " << common::OpId{opId} << "\n";
+///   score::mw::log::LogDebug() << "[MED] dispatching " << common::OpId{opId} ;
 ///   // → "[MED] dispatching HASH_HANDLER::HASH_UPDATE [actor=4, action=2]"
 /// @endcode
 struct OpId
@@ -210,6 +211,13 @@ inline std::ostream& operator<<(std::ostream& os, const OpId& op)
 {
     return os << ActorName(op.id.operationActor) << "::" << ActionName(op.id.operationActor, op.id.operationAction)
               << " [actor=" << op.id.operationActor << ", action=" << op.id.operationAction << "]";
+}
+
+inline score::mw::log::LogStream& operator<<(score::mw::log::LogStream& os, const OpId& op)
+{
+    return os << ActorName(op.id.operationActor) << "::" << ActionName(op.id.operationActor, op.id.operationAction)
+              << " [actor=" << static_cast<uint32_t>(op.id.operationActor)
+              << ", action=" << static_cast<uint32_t>(op.id.operationAction) << "]";
 }
 
 }  // namespace score::crypto::daemon::common

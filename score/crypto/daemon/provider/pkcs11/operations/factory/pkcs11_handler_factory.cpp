@@ -26,7 +26,7 @@
 #include "score/crypto/daemon/provider/pkcs11/operations/mac/pkcs11_mac_executor.hpp"
 #include "score/crypto/daemon/provider/pkcs11/operations/mac/pkcs11_mac_handler.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::provider::pkcs11
 {
@@ -72,7 +72,7 @@ score::Result<handler::Handler::Sptr> Pkcs11HandlerFactory::CreateHashHandler(co
         return score::Result<handler::Handler::Sptr>(score::unexpect, error);
     }
 
-    std::cout << "[PKCS11_HANDLER_FACTORY] Creating HASH handler for algorithm: " << algorithm << "\n";
+    score::mw::log::LogDebug() << "[PKCS11_HANDLER_FACTORY] Creating HASH handler for algorithm: " << algorithm;
 
     Pkcs11SessionGuard guard(m_provider, Pkcs11HashHandler::kRequirements);
     if (!guard)

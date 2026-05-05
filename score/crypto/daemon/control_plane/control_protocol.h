@@ -13,10 +13,11 @@
 #ifndef SCORE_CRYPTO_DAEMON_CONTROL_PLANE_CONTROL_PROTOCOL_H
 #define SCORE_CRYPTO_DAEMON_CONTROL_PLANE_CONTROL_PROTOCOL_H
 
+#include "score/mw/log/logging.h"
 #include <cstddef>
 #include <cstdint>
 #include <functional>
-#include <iostream>
+
 #include <limits>
 #include <string>
 #include <string_view>
@@ -301,9 +302,9 @@ class OperationRequestBuilder
     {
         if (error)
         {
-            std::cout << "[CONTROL_OP_REQ_BUILDER] ERROR - Cannot build OperationRequest due to previous errors in "
-                         "building process"
-                      << "\n";
+            score::mw::log::LogDebug()
+                << "[CONTROL_OP_REQ_BUILDER] ERROR - Cannot build OperationRequest due to previous errors in "
+                   "building process";
 
             error = false;
             operationRequest.operations.clear();
@@ -326,8 +327,8 @@ class OperationRequestBuilder
     {
         if (operationRequest.operations.empty())
         {
-            std::cout << "[CONTROL_OP_REQ_BUILDER] ERROR - Trying to add parameter without an operation"
-                      << "\n";
+            score::mw::log::LogDebug()
+                << "[CONTROL_OP_REQ_BUILDER] ERROR - Trying to add parameter without an operation";
             error = true;
             return false;
         }
@@ -446,9 +447,9 @@ class OperationResponseBuilder
     {
         if (error)
         {
-            std::cout << "[CONTROL_OP_RESP_BUILDER] ERROR - Cannot build OperationResponse due to previous errors in "
-                         "building process"
-                      << "\n";
+            score::mw::log::LogDebug()
+                << "[CONTROL_OP_RESP_BUILDER] ERROR - Cannot build OperationResponse due to previous errors in "
+                   "building process";
 
             error = false;
             operationResponse.operations.clear();
@@ -470,8 +471,8 @@ class OperationResponseBuilder
     {
         if (operationResponse.operations.empty())
         {
-            std::cout << "[CONTROL_OP_RESP_BUILDER] ERROR - Trying to add parameter without an operation"
-                      << "\n";
+            score::mw::log::LogDebug()
+                << "[CONTROL_OP_RESP_BUILDER] ERROR - Trying to add parameter without an operation";
             error = true;
             return false;
         }
@@ -675,7 +676,7 @@ class ControlResponseValidator
     {
         if (m_logErrors)
         {
-            std::cout << "[ControlResponseValidator] ERROR - " << m_errorMsg << "\n";
+            score::mw::log::LogDebug() << "[ControlResponseValidator] ERROR - " << m_errorMsg;
         }
     }
 };

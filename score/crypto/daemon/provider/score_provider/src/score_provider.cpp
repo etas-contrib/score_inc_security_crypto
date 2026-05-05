@@ -12,7 +12,7 @@
 
 #include "score/crypto/daemon/provider/score_provider/score_provider.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::provider::score_provider
 {
@@ -28,7 +28,8 @@ bool ScoreProvider::Initialize(const ProviderInitContext& ctx)
     m_provider_name = ctx.name;
     m_initialized = true;
 
-    std::cout << "[ScoreProvider] Initialized (ID: " << m_numeric_id << ", Name: " << m_provider_name << ")\n";
+    score::mw::log::LogDebug() << "[ScoreProvider] Initialized (ID: " << m_numeric_id << ", Name: " << m_provider_name
+                               << ")";
     return true;
 }
 

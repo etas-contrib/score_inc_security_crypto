@@ -20,10 +20,11 @@
 #include "score/crypto/daemon/provider/score_provider/openssl/detail/openssl_algorithm_info.hpp"
 #include "score/crypto/daemon/provider/score_provider/openssl/operations/hash/openssl_hash_handler.hpp"
 
+#include "score/mw/log/logging.h"
 #include <cassert>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
+
 #include <memory>
 #include <optional>
 #include <thread>
@@ -81,13 +82,13 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::ValidateAlgorithm(
 Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::InitializeContext(
     const ::score::crypto::daemon::provider::handler::InitializationParams& init_params)
 {
-    std::cout << "DEBUG: InitializeContext called with algorithm: " << m_algorithm << "\n";
+    score::mw::log::LogDebug() << "DEBUG: InitializeContext called with algorithm: " << m_algorithm;
 
     // Validate the algorithm
     const auto result = ValidateAlgorithm(m_algorithm);
     if (!result.has_value())
     {
-        std::cout << "ERROR: Algorithm validation failed in InitializeContext\n";
+        score::mw::log::LogDebug() << "ERROR: Algorithm validation failed in InitializeContext";
         return result;
     }
 
@@ -119,8 +120,9 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::Reset()
 Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::StartHash(
     const std::optional<common::RequestParameter> initialDataOrIV)
 {
-    std::cout << "DEBUG: StartHash called with algorithm: " << m_algorithm
-              << ", thread ID: " << std::this_thread::get_id() << ", this: " << this << "\n";
+    score::mw::log::LogDebug() << "DEBUG: StartHash called with algorithm: " << m_algorithm
+                               << ", thread ID: " << std::hash<std::thread::id>{}(std::this_thread::get_id())
+                               << ", this: " << reinterpret_cast<uintptr_t>(this);
     const EVP_MD* md = GetEVPMD(m_algorithm);
     if (md == nullptr)
     {
@@ -369,7 +371,7 @@ void OpenSslHashHandler::AllocateOutputBuffer(size_t size)
 {
     mOutputBuffer.clear();
     mOutputBuffer.resize(size);
-    std::cout << "[HASH_HANDLER] Output buffer allocated with size: " << size << std::endl;
+    score::mw::log::LogDebug() << "[HASH_HANDLER] Output buffer allocated with size: " << size;
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::openssl::handler

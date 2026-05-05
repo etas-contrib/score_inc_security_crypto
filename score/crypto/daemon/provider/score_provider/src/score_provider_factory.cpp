@@ -14,7 +14,7 @@
 #include "score/crypto/daemon/provider/provider_manager.hpp"
 #include "score/crypto/daemon/provider/score_provider/openssl/openssl_provider_factory.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::provider::score_provider
 {
@@ -36,13 +36,15 @@ bool ScoreProviderFactory::CreateAndRegister(ProviderManager& manager)
             openssl::OpenSSLProviderFactory openssl_factory;
             if (!openssl_factory.CreateAndRegister(manager))
             {
-                std::cerr << "[ScoreProviderFactory] Failed to create OpenSSL provider: " << entry.providerName << "\n";
+                score::mw::log::LogError()
+                    << "[ScoreProviderFactory] Failed to create OpenSSL provider: " << entry.providerName;
                 all_ok = false;
             }
         }
         else
         {
-            std::cerr << "[ScoreProviderFactory] Unknown provider implementation: " << entry.providerImpl << "\n";
+            score::mw::log::LogError() << "[ScoreProviderFactory] Unknown provider implementation: "
+                                       << entry.providerImpl;
             all_ok = false;
         }
     }

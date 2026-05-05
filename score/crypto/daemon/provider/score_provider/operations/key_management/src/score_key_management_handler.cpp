@@ -12,7 +12,8 @@
 
 #include "score/crypto/daemon/provider/score_provider/operations/key_management/score_key_management_handler.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <string_view>
 
 namespace score::crypto::daemon::provider::score_provider::operations::key_management
@@ -46,7 +47,7 @@ Expected<common::ResponseParameters, common::DaemonErrorCode> ScoreKeyManagement
 {
     if (!m_executor)
     {
-        std::cerr << LOG_PREFIX << "Execute: executor not injected\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Execute: executor not injected";
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
     return m_executor->Execute(m_ctx, operationId, request);

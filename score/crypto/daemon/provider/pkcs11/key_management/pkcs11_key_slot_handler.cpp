@@ -21,7 +21,8 @@
 #include "score/crypto/daemon/provider/pkcs11/key_management/pkcs11_key_store.hpp"
 #include "score/crypto/daemon/provider/pkcs11/pkcs11_provider.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <vector>
 
 namespace score::crypto::daemon::provider::pkcs11
@@ -64,8 +65,8 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
 
     if (label_it == key_props.end() && id_it == key_props.end())
     {
-        std::cerr << LOG_PREFIX << "LoadKey: slot '" << slot.slot_name
-                  << "' has neither pkcs11.label nor pkcs11.object_id in deployment info\n";
+        score::mw::log::LogError() << LOG_PREFIX << "LoadKey: slot '" << slot.slot_name
+                                   << "' has neither pkcs11.label nor pkcs11.object_id in deployment info";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -115,7 +116,8 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
     auto session_result = m_provider->AcquireSession(reqs);
     if (!session_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "LoadKey: failed to acquire RO session for slot '" << slot.slot_name << "'\n";
+        score::mw::log::LogError() << LOG_PREFIX << "LoadKey: failed to acquire RO session for slot '" << slot.slot_name
+                                   << "'";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kProviderBusy);
     }
     const CK_SESSION_HANDLE session = session_result.value();
@@ -136,7 +138,8 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
     CK_RV rv = fns->C_FindObjectsInit(session, tmpl.data(), static_cast<CK_ULONG>(tmpl.size()));
     if (rv != CKR_OK)
     {
-        std::cerr << LOG_PREFIX << "C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(rv) << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(rv)
+                                   << '\n';
         m_provider->ReleaseSession(session, reqs);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
     }
@@ -148,7 +151,8 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
 
     if (rv != CKR_OK || found_count == 0U || found_object == CK_INVALID_HANDLE)
     {
-        std::cerr << LOG_PREFIX << "C_FindObjects: object not found for slot '" << slot.slot_name << "'\n";
+        score::mw::log::LogError() << LOG_PREFIX << "C_FindObjects: object not found for slot '" << slot.slot_name
+                                   << "'";
         m_provider->ReleaseSession(session, reqs);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
     }

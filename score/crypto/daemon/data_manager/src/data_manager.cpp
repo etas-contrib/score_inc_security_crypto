@@ -10,10 +10,11 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
+#include "score/mw/log/logging.h"
 #include <algorithm>
 #include <cassert>
 #include <cstddef>
-#include <iostream>
+
 #include <memory>
 #include <mutex>
 #include <utility>
@@ -35,12 +36,11 @@ Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode> DataManager
     ClientId clientId,
     std::shared_ptr<DataNode> node)
 {
-    std::cout << LOG_PREFIX << "addNode for clientId: " << clientId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "addNode for clientId: " << clientId;
 
     if (!node)
     {
-        std::cerr << LOG_PREFIX << "addNode: Invalid node sptr"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addNode: Invalid node sptr";
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -49,8 +49,7 @@ Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode> DataManager
     auto nodeIdRes = getNextNodeIdLocked(clientId, lock);
     if (!nodeIdRes)
     {
-        std::cerr << LOG_PREFIX << "addNode: Could not get a nodeId"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addNode: Could not get a nodeId";
         return make_unexpected(nodeIdRes.error());
     }
     auto nodeId = nodeIdRes.value();
@@ -62,7 +61,7 @@ Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode> DataManager
     m_node_map.try_emplace(clientId).first->second.emplace(nodeId, node);
     m_entry_nodes_per_client.try_emplace(clientId).first->second.push_back(nodeId);
 
-    std::cout << LOG_PREFIX << "addNode new nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "addNode new nodeId: " << nodeId;
 
     return nodeId;
 }
@@ -70,12 +69,12 @@ Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode> DataManager
 Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode>
 DataManager::addChildNode(ClientId clientId, DataNodeId parentId, std::shared_ptr<DataNode> node)
 {
-    std::cout << LOG_PREFIX << "addChildNode for clientId: " << clientId << " with parentId: " << parentId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "addChildNode for clientId: " << clientId
+                               << " with parentId: " << parentId;
 
     if (!node)
     {
-        std::cerr << LOG_PREFIX << "addChildNode: Invalid node sptr"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addChildNode: Invalid node sptr";
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -84,8 +83,7 @@ DataManager::addChildNode(ClientId clientId, DataNodeId parentId, std::shared_pt
     auto parentRes = getNodeLocked(clientId, parentId, lock);
     if (!parentRes.has_value())
     {
-        std::cerr << LOG_PREFIX << "addChildNode: Failed to get parent"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addChildNode: Failed to get parent";
         return make_unexpected(parentRes.error());
     }
     const auto& parent = parentRes.value();
@@ -93,8 +91,7 @@ DataManager::addChildNode(ClientId clientId, DataNodeId parentId, std::shared_pt
     auto nodeIdRes = getNextNodeIdLocked(clientId, lock);
     if (!nodeIdRes)
     {
-        std::cerr << LOG_PREFIX << "addChildNode: Could not get a nodeId"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addChildNode: Could not get a nodeId";
         return make_unexpected(nodeIdRes.error());
     }
     auto nodeId = nodeIdRes.value();
@@ -109,7 +106,7 @@ DataManager::addChildNode(ClientId clientId, DataNodeId parentId, std::shared_pt
     // Since we have parent with the same clientId, the client entry does already exist
     m_node_map.at(clientId).emplace(nodeId, node);
 
-    std::cout << LOG_PREFIX << "addChildNode new nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "addChildNode new nodeId: " << nodeId;
 
     return nodeId;
 }
@@ -117,12 +114,12 @@ DataManager::addChildNode(ClientId clientId, DataNodeId parentId, std::shared_pt
 Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode>
 DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared_ptr<DataNode> node)
 {
-    std::cout << LOG_PREFIX << "addSiblingNode for clientId: " << clientId << " with siblingId: " << siblingId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "addSiblingNode for clientId: " << clientId
+                               << " with siblingId: " << siblingId;
 
     if (!node)
     {
-        std::cerr << LOG_PREFIX << "addSiblingNode: Invalid node sptr"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addSiblingNode: Invalid node sptr";
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -131,8 +128,7 @@ DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared
     auto siblingRes = getNodeLocked(clientId, siblingId, lock);
     if (!siblingRes.has_value())
     {
-        std::cerr << LOG_PREFIX << "addSiblingNode: Failed to get sibling"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addSiblingNode: Failed to get sibling";
         return make_unexpected(siblingRes.error());
     }
     const auto& sibling = siblingRes.value();
@@ -140,8 +136,7 @@ DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared
     auto parentIdRes = sibling->getParent(DataNodeManagerToken{});
     if (!parentIdRes.has_value())
     {
-        std::cerr << LOG_PREFIX << "addSiblingNode: Sibling has no parent"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addSiblingNode: Sibling has no parent";
         return make_unexpected(parentIdRes.error());
     }
     const auto parentId = parentIdRes.value();
@@ -149,8 +144,7 @@ DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared
     auto parentRes = getNodeLocked(clientId, parentId, lock);
     if (!parentRes.has_value())
     {
-        std::cerr << LOG_PREFIX << "addSiblingNode: Failed to get parent"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addSiblingNode: Failed to get parent";
         return make_unexpected(parentRes.error());
     }
     const auto& parent = parentRes.value();
@@ -158,8 +152,7 @@ DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared
     auto nodeIdRes = getNextNodeIdLocked(clientId, lock);
     if (!nodeIdRes)
     {
-        std::cerr << LOG_PREFIX << "addSiblingNode: Could not get a nodeId"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "addSiblingNode: Could not get a nodeId";
         return make_unexpected(nodeIdRes.error());
     }
     auto nodeId = nodeIdRes.value();
@@ -174,7 +167,7 @@ DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared
     // Since we have parent with the same clientId, the client entry does already exist
     m_node_map.at(clientId).emplace(nodeId, node);
 
-    std::cout << LOG_PREFIX << "addSiblingNode new nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "addSiblingNode new nodeId: " << nodeId;
 
     return nodeId;
 }
@@ -182,7 +175,7 @@ DataManager::addSiblingNode(ClientId clientId, DataNodeId siblingId, std::shared
 Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataManager::deleteClientNodes(
     ClientId clientId)
 {
-    std::cout << LOG_PREFIX << "deleteClientNodes for clientId: " << clientId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "deleteClientNodes for clientId: " << clientId;
 
     const std::lock_guard<std::mutex> lock(m_mutex);
 
@@ -191,7 +184,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     auto clientItr = m_entry_nodes_per_client.find(clientId);
     if (clientItr == m_entry_nodes_per_client.end())
     {
-        std::cerr << LOG_PREFIX << "deleteClientNodes: Unknown clientId: " << clientId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "deleteClientNodes: Unknown clientId: " << clientId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -212,7 +205,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
 Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataManager::deleteNode(ClientId clientId,
                                                                                                  DataNodeId nodeId)
 {
-    std::cout << LOG_PREFIX << "deleteNode for clientId: " << clientId << " nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "deleteNode for clientId: " << clientId << " nodeId: " << nodeId;
 
     const std::lock_guard<std::mutex> lock(m_mutex);
     auto result = removeNodesFromStorage(clientId, nodeId, lock);
@@ -223,7 +216,8 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
 Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode>
 DataManager::removeNodesFromStorage(ClientId clientId, DataNodeId rootNodeId, const std::lock_guard<std::mutex>& _lock)
 {
-    std::cout << LOG_PREFIX << "removeNodesFromStorage with clientId:" << clientId << " nodeId: " << rootNodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "removeNodesFromStorage with clientId:" << clientId
+                               << " nodeId: " << rootNodeId;
 
     Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> result{};
 
@@ -241,7 +235,8 @@ DataManager::removeNodesFromStorage(ClientId clientId, DataNodeId rootNodeId, co
         auto nodeRes = getNodeLocked(clientId, currentId, _lock);
         if (!nodeRes.has_value())
         {
-            std::cerr << LOG_PREFIX << "removeNodesFromStorage: getNodeLocked failed for node " << currentId << "\n";
+            score::mw::log::LogError() << LOG_PREFIX << "removeNodesFromStorage: getNodeLocked failed for node "
+                                       << currentId;
             if (result.has_value())
             {
                 result = make_unexpected(nodeRes.error());
@@ -267,8 +262,9 @@ DataManager::removeNodesFromStorage(ClientId clientId, DataNodeId rootNodeId, co
         auto subResult = removeSingleNodeFromStorage(node, clientId, currentId, _lock);
         if (!subResult.has_value() && result.has_value())
         {
-            std::cerr << LOG_PREFIX << "removeNodesFromStorage: removeSingleNodeFromStorage failed for node "
-                      << currentId << "\n";
+            score::mw::log::LogError() << LOG_PREFIX
+                                       << "removeNodesFromStorage: removeSingleNodeFromStorage failed for node "
+                                       << currentId;
             result = make_unexpected(subResult.error());
         }
     }
@@ -282,8 +278,8 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     DataNodeId nodeId,
     const std::lock_guard<std::mutex>& _lock)
 {
-    std::cout << LOG_PREFIX << "removeSingleNodeFromStorage with clientId:" << clientId << " nodeId: " << nodeId
-              << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "removeSingleNodeFromStorage with clientId:" << clientId
+                               << " nodeId: " << nodeId;
 
     Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> result{};
 
@@ -298,8 +294,8 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
         }
         else
         {
-            std::cerr << LOG_PREFIX << "removeNodesFromStorage: getNodeLocked of parent failed " << parentId.value()
-                      << "\n";
+            score::mw::log::LogError() << LOG_PREFIX << "removeNodesFromStorage: getNodeLocked of parent failed "
+                                       << parentId.value();
             result = make_unexpected(parentRes.error());
         }
     }
@@ -321,7 +317,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     }
     else
     {
-        std::cerr << LOG_PREFIX << "removeSingleNodeFromStorage: Not found: clientId: " << clientId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "removeSingleNodeFromStorage: Not found: clientId: " << clientId;
         if (result.has_value())
         {
             result = make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
@@ -349,11 +345,12 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     DataNodeId nodeId,
     const std::lock_guard<std::mutex>& /*_lock*/)
 {
-    std::cout << LOG_PREFIX << "removeEntryNodeFromIndex: ClientId:" << clientId << " nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "removeEntryNodeFromIndex: ClientId:" << clientId
+                               << " nodeId: " << nodeId;
     auto clientItr = m_entry_nodes_per_client.find(clientId);
     if (clientItr == m_entry_nodes_per_client.end())
     {
-        std::cerr << LOG_PREFIX << "removeEntryNodeFromIndex: Not found: clientId: " << clientId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "removeEntryNodeFromIndex: Not found: clientId: " << clientId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
     auto& client = clientItr->second;
@@ -365,7 +362,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     }
     else
     {
-        std::cerr << LOG_PREFIX << "removeEntryNodeFromIndex: Not found: nodeId: " << nodeId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "removeEntryNodeFromIndex: Not found: nodeId: " << nodeId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -381,12 +378,12 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
 Expected<std::shared_ptr<DataNode>, score::crypto::daemon::common::DaemonErrorCode>
 DataManager::getNodeLocked(ClientId clientId, DataNodeId nodeId, const std::lock_guard<std::mutex>& /*_lock*/) const
 {
-    std::cout << LOG_PREFIX << "getNodeLocked: ClientId:" << clientId << " nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "getNodeLocked: ClientId:" << clientId << " nodeId: " << nodeId;
 
     auto clientItr = m_node_map.find(clientId);
     if (clientItr == m_node_map.end())
     {
-        std::cerr << LOG_PREFIX << "getNodeLocked: Not found: clientId: " << clientId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "getNodeLocked: Not found: clientId: " << clientId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
     const auto& client = clientItr->second;
@@ -394,7 +391,7 @@ DataManager::getNodeLocked(ClientId clientId, DataNodeId nodeId, const std::lock
     auto node = client.find(nodeId);
     if (node == client.end())
     {
-        std::cerr << LOG_PREFIX << "getNodeLocked: Not found: nodeId: " << nodeId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "getNodeLocked: Not found: nodeId: " << nodeId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -443,8 +440,7 @@ Expected<DataNodeId, score::crypto::daemon::common::DaemonErrorCode> DataManager
         retriesLeft--;
     }
 
-    std::cerr << LOG_PREFIX << "getNextNodeIdLocked: Not free nodeId found"
-              << "\n";
+    score::mw::log::LogError() << LOG_PREFIX << "getNextNodeIdLocked: Not free nodeId found";
     return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kQuotaExceeded);
 }
 
@@ -452,15 +448,15 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     ClientId clientId,
     DataNodeId nodeId) const
 {
-    std::cout << LOG_PREFIX << "releaseAccessor for clientId: " << clientId << " with nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "releaseAccessor for clientId: " << clientId
+                               << " with nodeId: " << nodeId;
 
     const std::lock_guard<std::mutex> lock(m_mutex);
 
     auto clientItr = m_busy_nodes.find(clientId);
     if (clientItr == m_busy_nodes.end())
     {
-        std::cerr << LOG_PREFIX << "releaseAccessor: Failed to get client"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "releaseAccessor: Failed to get client";
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
     auto& client = clientItr->second;
@@ -468,8 +464,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataMan
     auto nodeItr = client.find(nodeId);
     if (nodeItr == client.end())
     {
-        std::cerr << LOG_PREFIX << "releaseAccessor: Failed to get node"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "releaseAccessor: Failed to get node";
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
     clientItr->second.erase(nodeId);
@@ -487,15 +482,15 @@ Expected<DataNodeAccessor<DataNode>, score::crypto::daemon::common::DaemonErrorC
     ClientId clientId,
     DataNodeId nodeId) const
 {
-    std::cout << LOG_PREFIX << "getNodeAccessor for clientId: " << clientId << " with nodeId: " << nodeId << "\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "getNodeAccessor for clientId: " << clientId
+                               << " with nodeId: " << nodeId;
 
     const std::lock_guard<std::mutex> lock(m_mutex);
 
     auto nodeRes = getNodeLocked(clientId, nodeId, lock);
     if (!nodeRes.has_value())
     {
-        std::cerr << LOG_PREFIX << "getNodeAccessor: Failed to get node"
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "getNodeAccessor: Failed to get node";
         return make_unexpected(nodeRes.error());
     }
     auto node = std::move(nodeRes).value();
@@ -514,8 +509,7 @@ Expected<DataNodeAccessor<DataNode>, score::crypto::daemon::common::DaemonErrorC
 
         if (nodeItr != client.end())
         {
-            std::cerr << LOG_PREFIX << "getNodeAccessor: Node is currently busy"
-                      << "\n";
+            score::mw::log::LogError() << LOG_PREFIX << "getNodeAccessor: Node is currently busy";
             return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kResourceBusy);
         }
     }

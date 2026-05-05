@@ -10,8 +10,9 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
+#include "score/mw/log/logging.h"
 #include <algorithm>
-#include <iostream>
+
 #include <memory>
 #include <variant>
 #include <vector>
@@ -100,7 +101,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataNod
     }
     else
     {
-        std::cerr << LOG_PREFIX << "removeChild could not find child with nodeId: " << nodeId << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "removeChild could not find child with nodeId: " << nodeId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 

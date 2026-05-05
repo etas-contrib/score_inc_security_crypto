@@ -12,10 +12,10 @@
 
 #include "score/crypto/ipc/grpc_adapter/grpc_control_server.h"
 #include "score/crypto/ipc/grpc_adapter/grpc_control_handler.h"
+#include "score/mw/log/logging.h"
 #include <grpcpp/grpcpp.h>
 #include <unistd.h>
 #include <cstring>
-#include <iostream>
 
 namespace score::crypto::ipc
 {
@@ -63,10 +63,10 @@ void GrpcControlServer::Start(std::string_view socket_path)
         throw std::runtime_error("Failed to start gRPC server on unix:" + std::string(socket_path));
     }
 
-    std::cout << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-    std::cout << "[GrpcControlServer] !!! WARNING: Using insecure mechanism for uid and pid !!!\n";
-    std::cout << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n";
-    std::cout << "[GrpcControlServer] Listening on unix:" << _impl->socket_path << std::endl;
+    score::mw::log::LogDebug() << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+    score::mw::log::LogDebug() << "[GrpcControlServer] !!! WARNING: Using insecure mechanism for uid and pid !!!";
+    score::mw::log::LogDebug() << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+    score::mw::log::LogDebug() << "[GrpcControlServer] Listening on unix:" << _impl->socket_path;
 }
 
 void GrpcControlServer::Stop()
@@ -81,17 +81,17 @@ void GrpcControlServer::Stop()
         {
             if (unlink(_impl->socket_path.c_str()) == 0)
             {
-                std::cout << "[GrpcControlServer] Cleaned up socket file: " << _impl->socket_path << std::endl;
+                score::mw::log::LogDebug() << "[GrpcControlServer] Cleaned up socket file: " << _impl->socket_path;
             }
             else if (errno != ENOENT)
             {
-                std::cerr << "[GrpcControlServer] Warning: Failed to remove socket file " << _impl->socket_path << ": "
-                          << strerror(errno) << std::endl;
+                score::mw::log::LogError() << "[GrpcControlServer] Warning: Failed to remove socket file "
+                                           << _impl->socket_path << ": " << strerror(errno);
             }
             _impl->socket_path.clear();
         }
 
-        std::cout << "[GrpcControlServer] gRPC Control Server shutdown complete" << std::endl;
+        score::mw::log::LogDebug() << "[GrpcControlServer] gRPC Control Server shutdown complete";
     }
 }
 

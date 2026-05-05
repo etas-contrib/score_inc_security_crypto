@@ -17,7 +17,8 @@
 #include "score/crypto/daemon/provider/executors/key_mgmt_request_parser.hpp"
 
 #include "score/crypto/daemon/common/daemon_error.hpp"
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <string_view>
 
 namespace score::crypto::daemon::provider::crypto_executor
@@ -72,13 +73,13 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
     // PKCS#11-specific operations — stubs for future implementation.
     if ((action == km_ops::KEY_WRAP) || (action == km_ops::KEY_UNWRAP) || (action == km_ops::KEY_DERIVE))
     {
-        std::cerr << LOG_PREFIX << "Execute: operation not yet implemented (0x" << std::hex
-                  << static_cast<unsigned>(action) << std::dec << ")\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Execute: operation not yet implemented (0x" << std::hex
+                                   << static_cast<unsigned>(action) << std::dec << ")";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
     }
 
-    std::cerr << LOG_PREFIX << "Execute: unsupported action 0x" << std::hex << static_cast<unsigned>(action) << std::dec
-              << '\n';
+    score::mw::log::LogError() << LOG_PREFIX << "Execute: unsupported action 0x" << std::hex
+                               << static_cast<unsigned>(action) << std::dec << '\n';
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
 }
 
@@ -98,7 +99,7 @@ KeyManagementExecutor::HandleGenerate(const KeyMgmtExecutionContext& ctx, common
     auto gen_req = km_parse::BuildGenerationRequest(request);
     if (!gen_req.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleGenerate: invalid request parameters\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleGenerate: invalid request parameters";
         return score::crypto::make_unexpected(gen_req.error());
     }
 
@@ -106,7 +107,7 @@ KeyManagementExecutor::HandleGenerate(const KeyMgmtExecutionContext& ctx, common
     auto gen_result = m_factory->GenerateKey(gen_req.value());
     if (!gen_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleGenerate: GenerateKey failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleGenerate: GenerateKey failed";
         return score::crypto::make_unexpected(
             score::crypto::daemon::common::DaemonErrorCode::kAlgorithmExecutionFailed);
     }
@@ -144,7 +145,7 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
     auto slot_nid_res = km_parse::ExtractUint64(request, 0U);
     if (!slot_nid_res.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleLoad: invalid slot node id\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleLoad: invalid slot node id";
         return score::crypto::make_unexpected(slot_nid_res.error());
     }
     const auto slot_nid = slot_nid_res.value();
@@ -153,7 +154,7 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
     auto slot_res = m_service->ResolveSlotForOperation(ctx.client_id, slot_nid);
     if (!slot_res.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleLoad: slot resolution failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleLoad: slot resolution failed";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
     const auto& resolution = slot_res.value();
@@ -163,7 +164,7 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
         {ctx.client_id, ctx.context_node_id, ctx.provider_id, resolution.handle}, *m_slot_handler, *resolution.config);
     if (!node_id_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleLoad: LoadOrShare failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleLoad: LoadOrShare failed";
         return score::crypto::make_unexpected(
             score::crypto::daemon::common::DaemonErrorCode::kAlgorithmExecutionFailed);
     }
@@ -189,14 +190,14 @@ KeyManagementExecutor::HandleRelease(std::uint64_t client_id, common::RequestPar
     auto key_nid_res = km_parse::ExtractUint64(request, 0U);
     if (!key_nid_res.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleRelease: invalid key node id\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleRelease: invalid key node id";
         return score::crypto::make_unexpected(key_nid_res.error());
     }
 
     auto release_result = m_service->ReleaseKeyMaterial(client_id, key_nid_res.value());
     if (!release_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleRelease: release failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleRelease: release failed";
         return score::crypto::make_unexpected(
             score::crypto::daemon::common::DaemonErrorCode::kAlgorithmExecutionFailed);
     }
@@ -220,14 +221,14 @@ KeyManagementExecutor::HandleSlotInfo(std::uint64_t client_id, common::RequestPa
     auto slot_nid_res = km_parse::ExtractUint64(request, 0U);
     if (!slot_nid_res.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleSlotInfo: invalid slot node id\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleSlotInfo: invalid slot node id";
         return score::crypto::make_unexpected(slot_nid_res.error());
     }
 
     auto slot_res = m_service->ResolveSlotForOperation(client_id, slot_nid_res.value());
     if (!slot_res.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleSlotInfo: slot resolution failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleSlotInfo: slot resolution failed";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -235,7 +236,7 @@ KeyManagementExecutor::HandleSlotInfo(std::uint64_t client_id, common::RequestPa
     auto info_result = m_slot_handler->GetSlotInfo(*slot_res.value().config);
     if (!info_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "HandleSlotInfo: GetSlotInfo failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "HandleSlotInfo: GetSlotInfo failed";
         return score::crypto::make_unexpected(
             score::crypto::daemon::common::DaemonErrorCode::kAlgorithmExecutionFailed);
     }

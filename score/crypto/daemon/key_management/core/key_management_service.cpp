@@ -17,7 +17,8 @@
 #include "score/crypto/daemon/key_management/nodes/key_data_node.hpp"
 #include "score/crypto/daemon/key_management/nodes/key_slot_data_node.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <string_view>
 
 namespace score::crypto::daemon::key_management
@@ -40,7 +41,7 @@ KeyManagementService::KeyManagementService(data_manager::IDataManager::Sptr data
 {
     if (!m_data_manager || !m_provider_manager || !m_slot_registry)
     {
-        std::cerr << LOG_PREFIX << "constructor: null dependency injected\n";
+        score::mw::log::LogError() << LOG_PREFIX << "constructor: null dependency injected";
     }
 }
 
@@ -54,7 +55,7 @@ Expected<KeyDataNodeResult, score::crypto::daemon::common::DaemonErrorCode> KeyM
 {
     if (!handler)
     {
-        std::cerr << LOG_PREFIX << "RegisterKeyMaterial: null handler\n";
+        score::mw::log::LogError() << LOG_PREFIX << "RegisterKeyMaterial: null handler";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -74,7 +75,8 @@ Expected<KeyDataNodeResult, score::crypto::daemon::common::DaemonErrorCode> KeyM
             reg_id = registry.FindSlotRegistryId(params.slot_handle);
             if (reg_id == 0U)
             {
-                std::cerr << LOG_PREFIX << "RegisterKeyMaterial: race condition - slot registered but ID not found\n";
+                score::mw::log::LogError()
+                    << LOG_PREFIX << "RegisterKeyMaterial: race condition - slot registered but ID not found";
                 return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
             }
 
@@ -82,7 +84,8 @@ Expected<KeyDataNodeResult, score::crypto::daemon::common::DaemonErrorCode> KeyM
             key_node = registry.FindById(reg_id);
             if (!key_node)
             {
-                std::cerr << LOG_PREFIX << "RegisterKeyMaterial: existing key not found after race condition\n";
+                score::mw::log::LogError()
+                    << LOG_PREFIX << "RegisterKeyMaterial: existing key not found after race condition";
                 return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
             }
         }
@@ -132,7 +135,7 @@ Expected<KeyDataNodeResult, score::crypto::daemon::common::DaemonErrorCode> KeyM
                 params.client_id, params.parent_id, std::move(existing), reg_id, params.provider_id);
         }
 
-        std::cerr << LOG_PREFIX << "LoadOrShare: LoadKey failed and slot not in registry\n";
+        score::mw::log::LogError() << LOG_PREFIX << "LoadOrShare: LoadKey failed and slot not in registry";
         return score::crypto::make_unexpected(load_result.error());
     }
 
@@ -154,7 +157,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> KeyMana
     auto del_result = m_data_manager->deleteNode(client_id, ref_node_id);
     if (!del_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "ReleaseKeyMaterial: deleteNode failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ReleaseKeyMaterial: deleteNode failed";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidResourceId);
     }
 
@@ -207,7 +210,7 @@ Expected<KeyDataNodeResult, score::crypto::daemon::common::DaemonErrorCode> KeyM
     auto node_id_result = m_data_manager->addChildNode(client_id, parent_id, ref_node);
     if (!node_id_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "CreateKeyDataNode: addChildNode failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "CreateKeyDataNode: addChildNode failed";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 
@@ -234,8 +237,8 @@ Expected<data_manager::DataNodeId, score::crypto::daemon::common::DaemonErrorCod
     auto handle_result = m_slot_registry->ResolveAppResource(resource_name, client_id);
     if (!handle_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "ResolveKeySlot: SlotRegistry::ResolveAppResource failed for '" << resource_name
-                  << "'\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveKeySlot: SlotRegistry::ResolveAppResource failed for '"
+                                   << resource_name << "'";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidResourceId);
     }
 
@@ -244,7 +247,7 @@ Expected<data_manager::DataNodeId, score::crypto::daemon::common::DaemonErrorCod
     auto node_id_result = m_data_manager->addNode(client_id, std::move(slot_node));
     if (!node_id_result.has_value())
     {
-        std::cerr << LOG_PREFIX << "ResolveKeySlot: addNode failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveKeySlot: addNode failed";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 
@@ -338,7 +341,8 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
     auto node_accessor = m_data_manager->getNodeAccessor(client_id, key_node_id);
     if (!node_accessor.has_value())
     {
-        std::cerr << LOG_PREFIX << "BindKeyToContext: node lookup failed for key_node_id=" << key_node_id << "\n";
+        score::mw::log::LogError() << LOG_PREFIX
+                                   << "BindKeyToContext: node lookup failed for key_node_id=" << key_node_id;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -357,7 +361,7 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         auto slot_acc = std::move(node_accessor.value()).downCast<KeySlotDataNode>();
         if (!slot_acc.has_value())
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: kKeySlot downCast failed (internal)\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: kKeySlot downCast failed (internal)";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
         }
 
@@ -365,10 +369,10 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         auto slot_config_res = slot_node->GetConfig();
         if (!slot_config_res.has_value())
         {
-            std::cerr << LOG_PREFIX
-                      << "BindKeyToContext: KeySlotDataNode has no config "
-                         "(key_node_id="
-                      << key_node_id << ")\n";
+            score::mw::log::LogError() << LOG_PREFIX
+                                       << "BindKeyToContext: KeySlotDataNode has no config "
+                                          "(key_node_id="
+                                       << key_node_id << ")";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
         const auto* slot_config = slot_config_res.value();
@@ -378,7 +382,8 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         auto primary_prov_res = m_slot_registry->GetPrimaryProviderId(slot_handle);
         if (!primary_prov_res.has_value())
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: no primary provider for slot " << key_node_id << "\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: no primary provider for slot "
+                                       << key_node_id;
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
         const common::ProviderId& slot_provider_id = primary_prov_res.value();
@@ -386,8 +391,9 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         // Cross-provider guard: key's provider must match the target context provider.
         if (target_provider_id != common::kInvalidProviderId && slot_provider_id != target_provider_id)
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: cross-provider binding not supported "
-                      << "(key provider=" << slot_provider_id << ", target provider=" << target_provider_id << ")\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: cross-provider binding not supported "
+                                       << "(key provider=" << slot_provider_id
+                                       << ", target provider=" << target_provider_id << ")";
             return score::crypto::make_unexpected(
                 score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
         }
@@ -395,15 +401,16 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         auto slot_provider = m_provider_manager->GetProvider(slot_provider_id);
         if (!slot_provider)
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: provider '" << slot_provider_id << "' not found\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: provider '" << slot_provider_id
+                                       << "' not found";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
 
         auto slot_handler = slot_provider->GetKeySlotHandler(*slot_config);
         if (!slot_handler)
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: provider '" << slot_provider_id
-                      << "' does not support slot operations\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: provider '" << slot_provider_id
+                                       << "' does not support slot operations";
             return score::crypto::make_unexpected(
                 score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
         }
@@ -413,7 +420,7 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
             LoadOrShare({client_id, context_node_id, slot_provider_id, slot_handle}, *slot_handler, *slot_config);
         if (!ref_result.has_value())
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: LoadOrShare failed for " << key_node_id << "\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: LoadOrShare failed for " << key_node_id;
             return score::crypto::make_unexpected(ref_result.error());
         }
 
@@ -436,16 +443,16 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         auto ref_acc = std::move(node_accessor.value()).downCast<KeyDataNode>();
         if (!ref_acc.has_value())
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: kKeyData downCast failed (internal)\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: kKeyData downCast failed (internal)";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
         }
 
         auto key_data_node = ref_acc.value()->GetKeyEntry();
         if (!key_data_node)
         {
-            std::cerr << LOG_PREFIX
-                      << "BindKeyToContext: KeyDataNode has no backing "
-                         "KeyDataNode\n";
+            score::mw::log::LogError() << LOG_PREFIX
+                                       << "BindKeyToContext: KeyDataNode has no backing "
+                                          "KeyDataNode";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
 
@@ -453,8 +460,9 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
         const auto& key_provider_id = key_data_node->GetProviderId();
         if (target_provider_id != common::kInvalidProviderId && key_provider_id != target_provider_id)
         {
-            std::cerr << LOG_PREFIX << "BindKeyToContext: cross-provider binding not supported "
-                      << "(key provider=" << key_provider_id << ", target provider=" << target_provider_id << ")\n";
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: cross-provider binding not supported "
+                                       << "(key provider=" << key_provider_id
+                                       << ", target provider=" << target_provider_id << ")";
             return score::crypto::make_unexpected(
                 score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
         }
@@ -465,9 +473,9 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
             CreateKeyDataNode(client_id, context_node_id, key_data_node, registry_id, key_provider_id);
         if (!new_ref_result.has_value())
         {
-            std::cerr << LOG_PREFIX
-                      << "BindKeyToContext: failed to create context-owned "
-                         "KeyDataNode for loaded key\n";
+            score::mw::log::LogError() << LOG_PREFIX
+                                       << "BindKeyToContext: failed to create context-owned "
+                                          "KeyDataNode for loaded key";
             return score::crypto::make_unexpected(new_ref_result.error());
         }
 
@@ -478,9 +486,9 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
     }
 
     // Neither kKeySlot nor kKeyData invalid argument.
-    std::cerr << LOG_PREFIX << "BindKeyToContext: key_node_id=" << key_node_id
-              << " is neither a KeySlotDataNode nor a KeyDataNode"
-              << " (node_type=" << static_cast<int>(node_type) << ")\n";
+    score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: key_node_id=" << key_node_id
+                               << " is neither a KeySlotDataNode nor a KeyDataNode"
+                               << " (node_type=" << static_cast<int>(node_type) << ")";
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
 }
 
@@ -499,8 +507,8 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
         auto provider = m_provider_manager->GetProvider(requested_type);
         if (!provider)
         {
-            std::cerr << LOG_PREFIX << "ResolveTargetProvider: no provider for type "
-                      << static_cast<int>(requested_type) << "\n";
+            score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: no provider for type "
+                                       << static_cast<int>(requested_type);
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
         return provider->GetProviderId();
@@ -510,8 +518,8 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
     auto node_accessor = m_data_manager->getNodeAccessor(client_id, key_node_id.value());
     if (!node_accessor.has_value())
     {
-        std::cerr << LOG_PREFIX << "ResolveTargetProvider: node lookup failed for key_node_id=" << key_node_id.value()
-                  << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: node lookup failed for key_node_id="
+                                   << key_node_id.value();
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -528,7 +536,7 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
         auto config_res = slot_acc.value()->GetConfig();
         if (!config_res.has_value() || config_res.value()->provider_ids.empty())
         {
-            std::cerr << LOG_PREFIX << "ResolveTargetProvider: slot has no config or providers\n";
+            score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: slot has no config or providers";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
         const auto* config = config_res.value();
@@ -547,8 +555,8 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
             }
         }
 
-        std::cerr << LOG_PREFIX << "ResolveTargetProvider: no compatible provider for slot '" << config->slot_name
-                  << "' with type " << static_cast<int>(requested_type) << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: no compatible provider for slot '"
+                                   << config->slot_name << "' with type " << static_cast<int>(requested_type);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kIncompatibleKeyType);
     }
 
@@ -563,9 +571,9 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
         auto key_data_node = ref_acc.value()->GetKeyEntry();
         if (!key_data_node)
         {
-            std::cerr << LOG_PREFIX
-                      << "ResolveTargetProvider: KeyDataNode has no "
-                         "backing KeyDataNode\n";
+            score::mw::log::LogError() << LOG_PREFIX
+                                       << "ResolveTargetProvider: KeyDataNode has no "
+                                          "backing KeyDataNode";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }
 
@@ -581,13 +589,13 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
             return key_provider_id;
         }
 
-        std::cerr << LOG_PREFIX << "ResolveTargetProvider: key's provider '" << key_provider_id
-                  << "' incompatible with type " << static_cast<int>(requested_type) << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: key's provider '" << key_provider_id
+                                   << "' incompatible with type " << static_cast<int>(requested_type);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kIncompatibleKeyType);
     }
 
-    std::cerr << LOG_PREFIX << "ResolveTargetProvider: key_node_id=" << key_node_id.value()
-              << " is neither a KeySlotDataNode nor a KeyDataNode\n";
+    score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: key_node_id=" << key_node_id.value()
+                               << " is neither a KeySlotDataNode nor a KeyDataNode";
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
 }
 

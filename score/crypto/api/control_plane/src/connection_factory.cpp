@@ -10,7 +10,8 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <memory>
 #include <string_view>
 
@@ -30,9 +31,9 @@ Expected<std::unique_ptr<IConnection>, score::mw::crypto::CryptoErrorCode> Conne
     const std::string_view unixProtocolPrefix = "unix://";
     if (endpoint.rfind(unixProtocolPrefix, 0) != 0)
     {
-        std::cout << "[CONTROL_CLIENT_NODE_FACTORY] ERROR - Unsupported endpoint protocol. Only unix domain sockets "
-                     "are supported."
-                  << "\n";
+        score::mw::log::LogDebug()
+            << "[CONTROL_CLIENT_NODE_FACTORY] ERROR - Unsupported endpoint protocol. Only unix domain sockets "
+               "are supported.";
         return make_unexpected(score::mw::crypto::CryptoErrorCode::kInvalidArgument);
     }
 
@@ -41,8 +42,8 @@ Expected<std::unique_ptr<IConnection>, score::mw::crypto::CryptoErrorCode> Conne
     auto connection = std::make_unique<ConnectionImpl>(socketPath);
     if (!connection)
     {
-        std::cout << "[CONTROL_CLIENT_NODE_FACTORY] ERROR - Failed to create connection to socket: " << socketPath
-                  << "\n";
+        score::mw::log::LogDebug() << "[CONTROL_CLIENT_NODE_FACTORY] ERROR - Failed to create connection to socket: "
+                                   << socketPath;
         return make_unexpected(score::mw::crypto::CryptoErrorCode::kInternalError);
     }
 

@@ -17,7 +17,8 @@
 #include "score/crypto/daemon/data_manager/data_node.hpp"
 #include "score/crypto/daemon/data_manager/i_data_manager.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <memory>
 #include <thread>
 
@@ -34,15 +35,17 @@ ConnectionHandler::ConnectionHandler(std::unique_ptr<IRequestHandler> next_reque
 
 ControlResponse ConnectionHandler::processRequest(const ControlRequest& request)
 {
-    std::cout << "[CONTROL_HANDLER] Received request - Request ID: " << request.request_id
-              << ", Client Id ID: " << request.client_id << ", UID: " << request.uid << ", PID: " << request.pid
-              << ", Data Node Id: " << request.data_node_id << ", Data Node Value: " << request.node_id_value
-              << ", Data Node Tag: " << request.node_tag_value << "\n";
-    std::cout << "[CONTROL_HANDLER] Thread ID: " << std::this_thread::get_id() << "\n";
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Received request - Request ID: " << request.request_id
+                               << ", Client Id ID: " << request.client_id << ", UID: " << request.uid
+                               << ", PID: " << request.pid << ", Data Node Id: " << request.data_node_id
+                               << ", Data Node Value: " << request.node_id_value
+                               << ", Data Node Tag: " << request.node_tag_value;
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Thread ID: "
+                               << std::hash<std::thread::id>{}(std::this_thread::get_id());
     // Validate empty request
     if (request.operation.operations.empty())
     {
-        std::cout << "[CONTROL_HANDLER] Empty operation, returning error\n";
+        score::mw::log::LogDebug() << "[CONTROL_HANDLER] Empty operation, returning error";
         protocol::OperationResponseBuilder builder;
         auto opResponse = builder.build().value();
         return ControlResponse{request.request_id, opResponse};
@@ -63,8 +66,8 @@ ControlResponse ConnectionHandler::processRequest(const ControlRequest& request)
     {
         // Extract operation name
         const auto& opId = request.operation.operations[idx].operationId;
-        std::cout << "[CONTROL_HANDLER] Operation actor:" << opId.operationActor << " action:" << opId.operationAction
-                  << "\n";
+        score::mw::log::LogDebug() << "[CONTROL_HANDLER] Operation actor:" << opId.operationActor
+                                   << " action:" << opId.operationAction;
         if (opId.operationActor != common::actors::OP_ACTOR_CONTROL)
         {
             // Forward to next handler
@@ -74,9 +77,11 @@ ControlResponse ConnectionHandler::processRequest(const ControlRequest& request)
         {
             if (!ProcessSingleRequest(request, request.operation.operations[idx].operationId, responseBuilder))
             {
-                std::cerr << "[CONTROL_HANDLER] Failed to process control operation: actor=" << opId.operationActor
-                          << " action=" << opId.operationAction << "\n";
-                std::cerr << "[CONTROL_HANDLER] Stopping further processing of operations in this request\n";
+                score::mw::log::LogError()
+                    << "[CONTROL_HANDLER] Failed to process control operation: actor=" << opId.operationActor
+                    << " action=" << opId.operationAction;
+                score::mw::log::LogError()
+                    << "[CONTROL_HANDLER] Stopping further processing of operations in this request";
                 break;
             }
         }
@@ -90,8 +95,8 @@ bool ConnectionHandler::ProcessSingleRequest(const ControlRequest& request,
                                              const common::OperationIdentifier& opId,
                                              control_plane::protocol::OperationResponseBuilder& responseBuilder)
 {
-    std::cout << "[CONTROL_HANDLER] Processing control operation: actor=" << opId.operationActor
-              << " action=" << opId.operationAction << "\n";
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Processing control operation: actor=" << opId.operationActor
+                               << " action=" << opId.operationAction;
 
     if (opId.operationAction == operations::CONNECTION_OPEN)
     {
@@ -114,14 +119,14 @@ bool ConnectionHandler::ProcessConnectionCreation(const ControlRequest& request,
     auto dataNodeIdRes = m_data_manager->addNode(request.client_id, node);
     if (!dataNodeIdRes.has_value())
     {
-        std::cerr << "[CONTROL_HANDLER] Failed to create connection";
+        score::mw::log::LogError() << "[CONTROL_HANDLER] Failed to create connection";
         responseBuilder.operation(opId).return_error(dataNodeIdRes.error());
         return false;
     }
 
     auto connection_id = dataNodeIdRes.value();
 
-    std::cout << "[CONTROL_HANDLER] Created connection with connection_id: " << connection_id << "\n";
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Created connection with connection_id: " << connection_id;
 
     // Build success response with connection_id
     responseBuilder.operation(opId).return_success().return_value_uint64(connection_id);
@@ -136,14 +141,15 @@ bool ConnectionHandler::ProcessConnectionClosure(const ControlRequest& request,
     auto connection_id = request.data_node_id;
     auto client_id = request.client_id;
 
-    std::cout << "[CONTROL_HANDLER] Closing client_id: " << client_id << " connection_id: " << connection_id << "\n";
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Closing client_id: " << client_id
+                               << " connection_id: " << connection_id;
 
     // Clear all contexts associated with this connection by removing the connection node
     // This will cascade delete all child context nodes
     auto result = m_data_manager->deleteNode(client_id, connection_id);
     if (!result.has_value())
     {
-        std::cout << "[CONTROL_HANDLER] Warning Connection_id: " << connection_id << " not found";
+        score::mw::log::LogDebug() << "[CONTROL_HANDLER] Warning Connection_id: " << connection_id << " not found";
     }
 
     responseBuilder.operation(opId).return_success();
@@ -154,7 +160,7 @@ bool ConnectionHandler::ProcessUnknownRequest(const ControlRequest& request,
                                               const common::OperationIdentifier& opId,
                                               control_plane::protocol::OperationResponseBuilder& responseBuilder)
 {
-    std::cout << "[CONTROL_HANDLER] Received unknown operationAction=" << opId.operationAction << "\n";
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Received unknown operationAction=" << opId.operationAction;
     responseBuilder.operation(opId).return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
     return true;
 }

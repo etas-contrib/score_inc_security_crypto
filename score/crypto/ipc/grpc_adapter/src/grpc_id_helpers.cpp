@@ -10,10 +10,11 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
+#include "score/mw/log/logging.h"
 #include <unistd.h>
 #include <atomic>
 #include <cstdint>
-#include <iostream>
+
 #include <mutex>
 
 #include "score/crypto/daemon/control_plane/control_protocol.h"
