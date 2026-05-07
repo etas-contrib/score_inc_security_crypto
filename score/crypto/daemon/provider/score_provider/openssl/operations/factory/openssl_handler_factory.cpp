@@ -18,7 +18,6 @@
 #include "score/crypto/daemon/provider/score_provider/openssl/operations/mac/openssl_hmac_handler.hpp"
 #include "score/crypto/daemon/provider/score_provider/operations/hash/hash_executor.hpp"
 #include "score/crypto/daemon/provider/score_provider/operations/mac/mac_executor.hpp"
-#include "score/mw/log/logging.h"
 #include "score/result/result.h"
 
 namespace score::crypto::daemon::provider::score_provider::openssl::handler

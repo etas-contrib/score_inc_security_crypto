@@ -45,12 +45,12 @@ score::crypto::Expected<SlotDeploymentInfo, score::crypto::daemon::common::Daemo
     while (std::getline(file, line))
     {
         // Trim leading/trailing whitespace.
-        std::size_t start = line.find_first_not_of(" \t\r");
+        std::size_t start = line.find_first_not_of(" \t\r\n");
         if (start == std::string::npos)
         {
             continue;  // blank line
         }
-        std::size_t end = line.find_last_not_of(" \t\r");
+        std::size_t end = line.find_last_not_of(" \t\r\n");
         line = line.substr(start, end - start + 1U);
 
         // Skip comments.

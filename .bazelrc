@@ -14,7 +14,7 @@
 try-import %workspace%/user.bazelrc
 
 build --per_file_copt=external/score_baselibs.*/.*@-Wno-deprecated-declarations
-common --@score_baselibs//score/json:base_library=nlohmann
+common --@score_baselibs//score/json:base_library=nlohmann # TODO : https://github.com/eclipse-score/baselibs/issues/57
 
 build --java_language_version=17
 build --tool_java_language_version=17

@@ -10,7 +10,6 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
-#include "score/mw/log/logging.h"
 #include <unistd.h>
 #include <atomic>
 #include <cstdint>

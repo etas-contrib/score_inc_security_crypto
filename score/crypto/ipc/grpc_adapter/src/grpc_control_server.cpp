@@ -63,9 +63,9 @@ void GrpcControlServer::Start(std::string_view socket_path)
         throw std::runtime_error("Failed to start gRPC server on unix:" + std::string(socket_path));
     }
 
-    score::mw::log::LogDebug() << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
-    score::mw::log::LogDebug() << "[GrpcControlServer] !!! WARNING: Using insecure mechanism for uid and pid !!!";
-    score::mw::log::LogDebug() << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+    score::mw::log::LogWarn() << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
+    score::mw::log::LogWarn() << "[GrpcControlServer] !!! WARNING: Using insecure mechanism for uid and pid !!!";
+    score::mw::log::LogWarn() << "[GrpcControlServer] !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!";
     score::mw::log::LogDebug() << "[GrpcControlServer] Listening on unix:" << _impl->socket_path;
 }
 

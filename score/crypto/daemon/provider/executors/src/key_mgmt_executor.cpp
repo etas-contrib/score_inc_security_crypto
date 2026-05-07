@@ -73,13 +73,12 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
     // PKCS#11-specific operations — stubs for future implementation.
     if ((action == km_ops::KEY_WRAP) || (action == km_ops::KEY_UNWRAP) || (action == km_ops::KEY_DERIVE))
     {
-        score::mw::log::LogError() << LOG_PREFIX << "Execute: operation not yet implemented (0x" << std::hex
-                                   << static_cast<unsigned>(action) << std::dec << ")";
+        score::mw::log::LogError() << LOG_PREFIX << "Execute: operation not yet implemented (0x"
+                                   << score::mw::log::LogHex16{action} << ")";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
     }
 
-    score::mw::log::LogError() << LOG_PREFIX << "Execute: unsupported action 0x" << std::hex
-                               << static_cast<unsigned>(action) << std::dec;
+    score::mw::log::LogError() << LOG_PREFIX << "Execute: unsupported action 0x" << score::mw::log::LogHex16{action};
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
 }
 
