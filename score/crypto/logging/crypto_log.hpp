@@ -1,6 +1,0 @@
-#ifndef SCORE_CRYPTO_LOGGING_CRYPTO_LOG_HPP_
-#define SCORE_CRYPTO_LOGGING_CRYPTO_LOG_HPP_
-
-// Crypto logging utilities
-
-#endif  // SCORE_CRYPTO_LOGGING_CRYPTO_LOG_HPP_

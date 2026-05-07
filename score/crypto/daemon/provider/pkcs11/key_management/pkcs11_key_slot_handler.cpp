@@ -138,8 +138,7 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
     CK_RV rv = fns->C_FindObjectsInit(session, tmpl.data(), static_cast<CK_ULONG>(tmpl.size()));
     if (rv != CKR_OK)
     {
-        score::mw::log::LogError() << LOG_PREFIX << "C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(rv)
-                                   << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(rv);
         m_provider->ReleaseSession(session, reqs);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
     }

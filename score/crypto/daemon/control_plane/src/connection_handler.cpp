@@ -20,6 +20,7 @@
 #include "score/mw/log/logging.h"
 
 #include <memory>
+#include <sstream>
 #include <thread>
 
 namespace score::crypto::daemon::control_plane
@@ -40,8 +41,9 @@ ControlResponse ConnectionHandler::processRequest(const ControlRequest& request)
                                << ", PID: " << request.pid << ", Data Node Id: " << request.data_node_id
                                << ", Data Node Value: " << request.node_id_value
                                << ", Data Node Tag: " << request.node_tag_value;
-    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Thread ID: "
-                               << std::hash<std::thread::id>{}(std::this_thread::get_id());
+    std::ostringstream tid;
+    tid << std::this_thread::get_id();
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Thread ID: " << tid.str();
     // Validate empty request
     if (request.operation.operations.empty())
     {

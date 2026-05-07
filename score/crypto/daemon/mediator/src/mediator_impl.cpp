@@ -98,7 +98,7 @@ control_plane::ControlResponse MediatorImpl::processRequest(const control_plane:
         // Stop processing requests, once one fails. They may depend on each other
         if (!HandleSingleOperation(request, operation, responseBuilder))
         {
-            score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR at operation index: " << idx;
+            score::mw::log::LogError() << "[SCORE_API_MED] ERROR at operation index: " << idx;
             break;
         }
     }
@@ -128,7 +128,7 @@ bool MediatorImpl::HandleSingleOperation(const control_plane::ControlRequest& re
         auto success = HandleMediatorOperation(request, operation, responseBuilder);
         if (!success)
         {
-            score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Failed to handle mediator operation: "
+            score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Failed to handle mediator operation: "
                                        << common::OpId{operation.operationId};
         }
         return success;
@@ -137,7 +137,7 @@ bool MediatorImpl::HandleSingleOperation(const control_plane::ControlRequest& re
     auto success = ForwardSingleOperation(request, operation, responseBuilder);
     if (!success)
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Failed to forward operation: "
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Failed to forward operation: "
                                    << common::OpId{operation.operationId};
     }
     return success;
@@ -154,7 +154,7 @@ bool MediatorImpl::HandleMediatorOperation(const control_plane::ControlRequest& 
         auto success = HandleContextCreationOperation(request, operation, responseBuilder);
         if (!success)
         {
-            score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Failed to handle context creation operation";
+            score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Failed to handle context creation operation";
         }
 
         return success;
@@ -164,7 +164,7 @@ bool MediatorImpl::HandleMediatorOperation(const control_plane::ControlRequest& 
         auto success = HandleContextCloseOperation(request, operation, responseBuilder);
         if (!success)
         {
-            score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Failed to handle context close operation";
+            score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Failed to handle context close operation";
         }
 
         return success;
@@ -175,12 +175,12 @@ bool MediatorImpl::HandleMediatorOperation(const control_plane::ControlRequest& 
             HandleResourceResolutionOperation(request.client_id, request.data_node_id, operation, responseBuilder);
         if (!success)
         {
-            score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Failed to handle resource resolution operation";
+            score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Failed to handle resource resolution operation";
         }
         return success;
     }
 
-    score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Unknown mediator operation: "
+    score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Unknown mediator operation: "
                                << common::OpId{operationIdentifier};
 
     return false;
@@ -198,7 +198,7 @@ bool MediatorImpl::ForwardSingleOperation(const control_plane::ControlRequest& r
     auto node_accessor_res = m_data_manager->getNodeAccessor(client_id, context_id);
     if (!node_accessor_res.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - No context found for context_id: " << context_id;
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - No context found for context_id: " << context_id;
         responseBuilder.operation(operationIdentifier)
             .return_error(score::mw::crypto::CryptoErrorCode::kInvalidArgument);
         return false;
@@ -208,7 +208,7 @@ bool MediatorImpl::ForwardSingleOperation(const control_plane::ControlRequest& r
         std::move(node_accessor_res).value().downCast<provider::handler::ContextDataNode>();
     if (!context_node_accessor_res.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Context node for context_id: " << context_id
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Context node for context_id: " << context_id
                                    << " is not a ContextDataNode";
         responseBuilder.operation(operationIdentifier)
             .return_error(score::mw::crypto::CryptoErrorCode::kInvalidArgument);
@@ -247,7 +247,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
 
     if (operation.parameters.size() < 2)
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Not enough parameters for request";
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Not enough parameters for request";
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
         return false;
@@ -255,7 +255,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     auto context_type_res = operation.getParameter<std::string_view>(0);
     if (!context_type_res.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Wrong parameter type for context_type";
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Wrong parameter type for context_type";
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
         return false;
@@ -265,7 +265,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     auto algorithm_res = operation.getParameter<std::string_view>(1);
     if (!algorithm_res.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Wrong parameter type for algorithm";
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Wrong parameter type for algorithm";
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
         return false;
@@ -325,7 +325,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     }
     if (!provider)
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - No providers available for type: "
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - No providers available for type: "
                                    << static_cast<int>(requested_provider_type);
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
@@ -339,7 +339,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     auto crypto_ops = provider->GetCryptoHandlerFactory();
     if (crypto_ops == nullptr)
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Crypto operations not available";
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Crypto operations not available";
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kUnsupportedOperation);
         return false;
@@ -348,7 +348,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     auto create_result = crypto_ops->CreateHandler(std::string(context_type), std::string(algorithm));
     if (!create_result.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Handler or algorithm not supported: " << context_type
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Handler or algorithm not supported: " << context_type
                                    << "/" << algorithm;
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
@@ -415,7 +415,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     auto init_result = handler->InitializeContext(init_params);
     if (!init_result.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Handler initialization failed for context with error: "
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Handler initialization failed for context with error: "
                                    << static_cast<int>(init_result.error());
         m_data_manager->deleteNode(client_id, context_node_id);
         responseBuilder.operation(operation.operationId)
@@ -443,7 +443,7 @@ bool MediatorImpl::ExecuteOperation(const OperationExecutionContext& exec_ctx,
 
     if (!execute_result.has_value())
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] ERROR - Operation execution failed with error code: "
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Operation execution failed with error code: "
                                    << static_cast<int>(execute_result.error());
         responseBuilder.operation(exec_ctx.operationId).return_error(execute_result.error());
         return false;

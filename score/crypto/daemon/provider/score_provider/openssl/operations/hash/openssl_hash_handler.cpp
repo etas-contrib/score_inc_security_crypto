@@ -88,7 +88,7 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::InitializeContext(
     const auto result = ValidateAlgorithm(m_algorithm);
     if (!result.has_value())
     {
-        score::mw::log::LogDebug() << "ERROR: Algorithm validation failed in InitializeContext";
+        score::mw::log::LogError() << "ERROR: Algorithm validation failed in InitializeContext";
         return result;
     }
 

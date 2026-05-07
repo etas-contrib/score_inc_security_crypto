@@ -79,7 +79,7 @@ Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorC
     }
 
     score::mw::log::LogError() << LOG_PREFIX << "Execute: unsupported action 0x" << std::hex
-                               << static_cast<unsigned>(action) << std::dec << '\n';
+                               << static_cast<unsigned>(action) << std::dec;
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
 }
 

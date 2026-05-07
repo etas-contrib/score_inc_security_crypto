@@ -302,7 +302,7 @@ class OperationRequestBuilder
     {
         if (error)
         {
-            score::mw::log::LogDebug()
+            score::mw::log::LogError()
                 << "[CONTROL_OP_REQ_BUILDER] ERROR - Cannot build OperationRequest due to previous errors in "
                    "building process";
 
@@ -327,7 +327,7 @@ class OperationRequestBuilder
     {
         if (operationRequest.operations.empty())
         {
-            score::mw::log::LogDebug()
+            score::mw::log::LogError()
                 << "[CONTROL_OP_REQ_BUILDER] ERROR - Trying to add parameter without an operation";
             error = true;
             return false;
@@ -447,7 +447,7 @@ class OperationResponseBuilder
     {
         if (error)
         {
-            score::mw::log::LogDebug()
+            score::mw::log::LogError()
                 << "[CONTROL_OP_RESP_BUILDER] ERROR - Cannot build OperationResponse due to previous errors in "
                    "building process";
 
@@ -471,7 +471,7 @@ class OperationResponseBuilder
     {
         if (operationResponse.operations.empty())
         {
-            score::mw::log::LogDebug()
+            score::mw::log::LogError()
                 << "[CONTROL_OP_RESP_BUILDER] ERROR - Trying to add parameter without an operation";
             error = true;
             return false;
@@ -676,7 +676,7 @@ class ControlResponseValidator
     {
         if (m_logErrors)
         {
-            score::mw::log::LogDebug() << "[ControlResponseValidator] ERROR - " << m_errorMsg;
+            score::mw::log::LogError() << "[ControlResponseValidator] ERROR - " << m_errorMsg;
         }
     }
 };

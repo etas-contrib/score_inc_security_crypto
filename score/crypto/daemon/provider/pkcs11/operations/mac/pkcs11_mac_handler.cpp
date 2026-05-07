@@ -120,7 +120,7 @@ Pkcs11MacHandler::InitializeContext(const handler::InitializationParams& init_pa
     }
     if (!found)
     {
-        score::mw::log::LogError() << LOG_PREFIX << "Unsupported algorithm: " << m_algorithm << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "Unsupported algorithm: " << m_algorithm;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedAlgorithm);
     }
 
@@ -139,7 +139,7 @@ Pkcs11MacHandler::InitializeContext(const handler::InitializationParams& init_pa
         {
             score::mw::log::LogError() << LOG_PREFIX << "Bound key provider ID "
                                        << init_params.bound_key_handler->GetProviderId()
-                                       << " does not match expected provider ID " << init_params.provider_id << '\n';
+                                       << " does not match expected provider ID " << init_params.provider_id;
             score::mw::log::LogError() << LOG_PREFIX << "InitializeContext: bound key is not a PKCS#11 key handler";
             return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
         }

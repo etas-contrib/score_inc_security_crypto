@@ -45,5 +45,6 @@ cc_library(
         "//score/crypto/daemon/key_management:key_management_operations",
         "//score/crypto/daemon/provider/handler:hash_handler_operations",
         "//score/crypto/daemon/provider/handler:mac_handler_operations",
+        "@score_baselibs//score/mw/log",
     ],
 )

@@ -55,7 +55,7 @@ KeyManagementModule::Sptr KeyManagementModule::Create(data_manager::IDataManager
     module->m_slot_registry->ResolveProviderIds(*provider_manager);
 
     score::mw::log::LogDebug() << LOG_PREFIX << "Key management module initialized from config. Slots: "
-                               << module->m_slot_registry->GetSlotCount() << '\n';
+                               << module->m_slot_registry->GetSlotCount();
 
     return module;
 }

@@ -165,7 +165,7 @@ Pkcs11KeyStore::ResolvedKey Pkcs11KeyStore::ResolveObject(uint64_t opaque_id,
     if (rv_init != CKR_OK)
     {
         score::mw::log::LogError() << LOG_PREFIX << "ResolveObject: C_FindObjectsInit failed: rv="
-                                   << static_cast<unsigned long>(rv_init) << '\n';
+                                   << static_cast<unsigned long>(rv_init);
         return {};
     }
 
@@ -229,7 +229,7 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
                 if (rv != CKR_OK)
                 {
                     score::mw::log::LogError()
-                        << LOG_PREFIX << "C_DestroyObject failed: rv=" << static_cast<unsigned long>(rv) << '\n';
+                        << LOG_PREFIX << "C_DestroyObject failed: rv=" << static_cast<unsigned long>(rv);
                 }
             }
         }

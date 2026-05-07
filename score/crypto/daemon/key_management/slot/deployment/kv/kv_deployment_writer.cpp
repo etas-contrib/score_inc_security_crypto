@@ -27,17 +27,17 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
     std::ofstream file(path, std::ios::trunc);
     if (!file.is_open())
     {
-        score::mw::log::LogError() << kLogPrefix << "Cannot open deployment descriptor for writing: " << path << '\n';
+        score::mw::log::LogError() << kLogPrefix << "Cannot open deployment descriptor for writing: " << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
-    file << "[metadata]";
+    file << "[metadata]\n";
     for (const auto& [key, value] : info.metadata)
     {
         file << key << '=' << value << '\n';
     }
 
-    file << "\n[key]";
+    file << "\n[key]\n";
     for (const auto& [key, value] : info.key_properties)
     {
         file << key << '=' << value << '\n';
@@ -45,7 +45,7 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
 
     if (!file.good())
     {
-        score::mw::log::LogError() << kLogPrefix << "Write error for deployment descriptor: " << path << '\n';
+        score::mw::log::LogError() << kLogPrefix << "Write error for deployment descriptor: " << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 

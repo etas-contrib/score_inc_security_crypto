@@ -136,8 +136,7 @@ Pkcs11KeyFactory::GenerateKey(const key_management::KeyGenerationRequest& reques
     const CK_RV rv = fns->C_GenerateKey(session, &mechanism, attrs, sizeof(attrs) / sizeof(attrs[0]), &object);
     if (rv != CKR_OK)
     {
-        score::mw::log::LogError() << LOG_PREFIX << "C_GenerateKey failed: rv=" << static_cast<unsigned long>(rv)
-                                   << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "C_GenerateKey failed: rv=" << static_cast<unsigned long>(rv);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kOperationFailed);
     }
 
