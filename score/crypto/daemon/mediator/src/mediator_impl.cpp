@@ -219,7 +219,7 @@ bool MediatorImpl::ForwardSingleOperation(const control_plane::ControlRequest& r
     auto handler = context_node_accessor->GetHandler();
     if (!handler)
     {
-        score::mw::log::LogDebug()
+        score::mw::log::LogError()
             << "[SCORE_API_MED] ERROR - Context node accessor does not contain a handler for context_id: "
             << context_id;
         responseBuilder.operation(operationIdentifier).return_error(score::mw::crypto::CryptoErrorCode::kInternalError);

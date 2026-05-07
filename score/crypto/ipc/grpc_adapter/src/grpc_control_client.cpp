@@ -26,6 +26,7 @@
 #include <cstdint>
 
 #include <memory>
+#include <sstream>
 #include <string>
 #include <string_view>
 #include <thread>
@@ -89,8 +90,9 @@ GrpcControlClient::SendRequest(const daemon::control_plane::protocol::ControlReq
 
     if (!status.ok())
     {
-        score::mw::log::LogError() << "[GrpcControlClient] [Thread "
-                                   << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+        std::ostringstream tid;
+        tid << std::this_thread::get_id();
+        score::mw::log::LogError() << "[GrpcControlClient] [Thread " << tid.str() << "] "
                                    << "gRPC call failed for RequestID: " << request.request_id
                                    << " | Error: " << status.error_message();
         return make_unexpected(score::mw::crypto::CryptoErrorCode::kInternalError);

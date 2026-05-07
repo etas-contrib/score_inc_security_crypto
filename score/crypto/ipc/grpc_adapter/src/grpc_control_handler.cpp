@@ -26,6 +26,7 @@
 #include <cstdint>
 
 #include <memory>
+#include <sstream>
 #include <string_view>
 #include <thread>
 #include <utility>
@@ -60,16 +61,17 @@ grpc::Status GrpcControlServiceAdapter::Execute(
     // Convert FlatBuffer → Business Logic
     auto bl_req = ConvertRequest(fb_req);
 
-    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread "
-                               << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+    std::ostringstream tid;
+    tid << std::this_thread::get_id();
+
+    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread " << tid.str() << "] "
                                << "Processing request with RequestID: " << bl_req.request_id
                                << " | User Id: " << bl_req.client_id << " | DataNodeId: " << bl_req.data_node_id;
 
     // Lazy initialization: create handler for this thread on first request
     if (!_thread_handler)
     {
-        score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread "
-                                   << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+        score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread " << tid.str() << "] "
                                    << "Initializing thread-local request handler";
         _thread_handler = _factory->CreateRequestHandler();
     }
@@ -77,8 +79,7 @@ grpc::Status GrpcControlServiceAdapter::Execute(
     // Execute business logic (transport-agnostic)
     auto bl_resp = _thread_handler->processRequest(bl_req);
 
-    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread "
-                               << std::hash<std::thread::id>{}(std::this_thread::get_id()) << "] "
+    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread " << tid.str() << "] "
                                << "Processed request, returning response with RequestID: " << bl_resp.request_id
                                << " (Request had: " << bl_req.request_id << ")";
 

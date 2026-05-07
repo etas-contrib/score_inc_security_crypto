@@ -27,6 +27,7 @@
 
 #include <memory>
 #include <optional>
+#include <sstream>
 #include <thread>
 #include <vector>
 
@@ -120,9 +121,10 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::Reset()
 Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::StartHash(
     const std::optional<common::RequestParameter> initialDataOrIV)
 {
+    std::ostringstream tid;
+    tid << std::this_thread::get_id();
     score::mw::log::LogDebug() << "DEBUG: StartHash called with algorithm: " << m_algorithm
-                               << ", thread ID: " << std::hash<std::thread::id>{}(std::this_thread::get_id())
-                               << ", this: " << reinterpret_cast<uintptr_t>(this);
+                               << ", thread ID: " << tid.str() << ", this: " << reinterpret_cast<uintptr_t>(this);
     const EVP_MD* md = GetEVPMD(m_algorithm);
     if (md == nullptr)
     {
