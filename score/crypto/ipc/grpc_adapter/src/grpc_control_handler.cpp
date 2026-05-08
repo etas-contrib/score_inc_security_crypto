@@ -64,14 +64,14 @@ grpc::Status GrpcControlServiceAdapter::Execute(
     std::ostringstream tid;
     tid << std::this_thread::get_id();
 
-    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread " << tid.str() << "] "
-                               << "Processing request with RequestID: " << bl_req.request_id
-                               << " | User Id: " << bl_req.client_id << " | DataNodeId: " << bl_req.data_node_id;
+    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread" << tid.str() << "] "
+                               << "Processing request with RequestID:" << bl_req.request_id
+                               << " | User Id:" << bl_req.client_id << " | DataNodeId:" << bl_req.data_node_id;
 
     // Lazy initialization: create handler for this thread on first request
     if (!_thread_handler)
     {
-        score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread " << tid.str() << "] "
+        score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread" << tid.str() << "] "
                                    << "Initializing thread-local request handler";
         _thread_handler = _factory->CreateRequestHandler();
     }
@@ -79,9 +79,9 @@ grpc::Status GrpcControlServiceAdapter::Execute(
     // Execute business logic (transport-agnostic)
     auto bl_resp = _thread_handler->processRequest(bl_req);
 
-    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread " << tid.str() << "] "
-                               << "Processed request, returning response with RequestID: " << bl_resp.request_id
-                               << " (Request had: " << bl_req.request_id << ")";
+    score::mw::log::LogDebug() << "[GrpcControlServiceAdapter] [Server Thread" << tid.str() << "] "
+                               << "Processed request, returning response with RequestID:" << bl_resp.request_id
+                               << " (Request had:" << bl_req.request_id << ")";
 
     // Convert Business Logic → FlatBuffer
     ConvertResponse(bl_resp, response);

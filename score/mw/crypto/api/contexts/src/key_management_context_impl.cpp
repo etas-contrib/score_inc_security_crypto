@@ -145,7 +145,7 @@ class KeyManagementContextImpl::ReleaseCallbackImpl final : public IReleaseCallb
 
         if (!validator.isValid())
         {
-            score::mw::log::LogError() << "[API][KeyMgmtRelease] ERROR: " << validator.getError();
+            score::mw::log::LogError() << "[API][KeyMgmtRelease] ERROR:" << validator.getError();
             return score::Result<std::monostate>{
                 score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "KEY_RELEASE daemon response invalid")};
         }
@@ -198,7 +198,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::GenerateKey(const G
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR:" << validator.getError();
         return score::Result<CryptoResourceGuard>{
             score::unexpect, MakeError(CryptoErrorCode::kKeyGenerationFailed, "KEY_GENERATE daemon response invalid")};
     }
@@ -259,7 +259,7 @@ score::Result<CryptoResourceGuard> KeyManagementContextImpl::LoadKey(const Crypt
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][KeyMgmtContextImpl] ERROR:" << validator.getError();
         return score::Result<CryptoResourceGuard>{
             score::unexpect, MakeError(CryptoErrorCode::kInternalError, "KEY_LOAD daemon response invalid")};
     }

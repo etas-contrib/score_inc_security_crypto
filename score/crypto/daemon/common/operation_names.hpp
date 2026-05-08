@@ -199,7 +199,7 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
 /// for custom or future operations not yet registered in ActionName().
 ///
 /// @code
-///   score::mw::log::LogDebug() << "[MED] dispatching " << common::OpId{opId} ;
+///   score::mw::log::LogDebug() << "[MED] dispatching" << common::OpId{opId} ;
 ///   // → "[MED] dispatching HASH_HANDLER::HASH_UPDATE [actor=4, action=2]"
 /// @endcode
 struct OpId

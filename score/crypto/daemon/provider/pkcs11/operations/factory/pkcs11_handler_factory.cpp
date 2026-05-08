@@ -72,7 +72,7 @@ score::Result<handler::Handler::Sptr> Pkcs11HandlerFactory::CreateHashHandler(co
         return score::Result<handler::Handler::Sptr>(score::unexpect, error);
     }
 
-    score::mw::log::LogDebug() << "[PKCS11_HANDLER_FACTORY] Creating HASH handler for algorithm: " << algorithm;
+    score::mw::log::LogDebug() << "[PKCS11_HANDLER_FACTORY] Creating HASH handler for algorithm:" << algorithm;
 
     Pkcs11SessionGuard guard(m_provider, Pkcs11HashHandler::kRequirements);
     if (!guard)

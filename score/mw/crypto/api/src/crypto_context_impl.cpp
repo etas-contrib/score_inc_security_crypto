@@ -98,7 +98,7 @@ score::Result<std::unique_ptr<IHashContext>> CryptoContextImpl::CreateHashContex
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR:" << validator.getError();
         return score::Result<std::unique_ptr<IHashContext>>{
             score::unexpect, MakeError(CryptoErrorCode::kContextCreationFailed, "CTX_CREATE daemon response invalid")};
     }
@@ -147,7 +147,7 @@ score::Result<CryptoResourceId> CryptoContextImpl::ResolveResource(const Resourc
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR:" << validator.getError();
         return score::Result<CryptoResourceId>{
             score::unexpect, MakeError(CryptoErrorCode::kInternalError, "RESOURCE_RESOLVE daemon response invalid")};
     }
@@ -262,7 +262,7 @@ score::Result<std::unique_ptr<IMacContext>> CryptoContextImpl::CreateMacContext(
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR:" << validator.getError();
         return score::Result<std::unique_ptr<IMacContext>>{
             score::unexpect,
             MakeError(CryptoErrorCode::kContextCreationFailed, "CTX_CREATE MAC daemon response invalid")};
@@ -322,7 +322,7 @@ score::Result<std::unique_ptr<IKeyManagementContext>> CryptoContextImpl::CreateK
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][CryptoContextImpl] ERROR:" << validator.getError();
         return score::Result<std::unique_ptr<IKeyManagementContext>>{
             score::unexpect,
             MakeError(CryptoErrorCode::kContextCreationFailed, "CTX_CREATE KEY_MGMT daemon response invalid")};

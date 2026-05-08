@@ -134,7 +134,7 @@ OpenSslHmacHandler::InitializeContext(
     }
     if (!found)
     {
-        score::mw::log::LogError() << LOG_PREFIX << "Unsupported algorithm: " << m_algorithm;
+        score::mw::log::LogError() << LOG_PREFIX << "Unsupported algorithm:" << m_algorithm;
         return ::score::crypto::make_unexpected(
             ::score::crypto::daemon::common::DaemonErrorCode::kUnsupportedAlgorithm);
     }
@@ -212,7 +212,7 @@ OpenSslHmacHandler::StartMac(const std::optional<common::RequestParameter> /*ini
     const char* digest_name = GetDigestName();
     if (digest_name == nullptr)
     {
-        score::mw::log::LogError() << LOG_PREFIX << "StartMac: unsupported digest for algorithm " << m_algorithm;
+        score::mw::log::LogError() << LOG_PREFIX << "StartMac: unsupported digest for algorithm" << m_algorithm;
         return ::score::crypto::make_unexpected(
             ::score::crypto::daemon::common::DaemonErrorCode::kUnsupportedAlgorithm);
     }

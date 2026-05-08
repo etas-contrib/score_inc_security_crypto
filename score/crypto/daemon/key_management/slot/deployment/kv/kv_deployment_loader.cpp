@@ -28,7 +28,7 @@ score::crypto::Expected<SlotDeploymentInfo, score::crypto::daemon::common::Daemo
     std::ifstream file(path);
     if (!file.is_open())
     {
-        score::mw::log::LogError() << kLogPrefix << "Cannot open deployment descriptor: " << path;
+        score::mw::log::LogError() << kLogPrefix << "Cannot open deployment descriptor:" << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 

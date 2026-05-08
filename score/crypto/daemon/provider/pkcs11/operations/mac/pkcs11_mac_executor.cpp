@@ -29,7 +29,7 @@ using common::ResponseParameters;
 using common::StreamOperationState;
 using score::crypto::daemon::common::DaemonErrorCode;
 
-static constexpr std::string_view LOG_PREFIX = "[PKCS11_MAC_EXECUTOR] ";
+static constexpr std::string_view LOG_PREFIX = "[PKCS11_MAC_EXECUTOR]";
 
 // ---------------------------------------------------------------------------
 // Construction

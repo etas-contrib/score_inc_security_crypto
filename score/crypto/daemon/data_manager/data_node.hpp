@@ -218,7 +218,7 @@ class DataNode
     const bool m_exclusiveAccess;
 
     /// @brief Log prefix prepended to all diagnostic messages emitted by this class.
-    static constexpr std::string_view LOG_PREFIX = "[DATA_NODE] ";
+    static constexpr std::string_view LOG_PREFIX = "[DATA_NODE]";
 };
 
 }  // namespace score::crypto::daemon::data_manager

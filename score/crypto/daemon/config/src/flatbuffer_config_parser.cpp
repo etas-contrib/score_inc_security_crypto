@@ -33,7 +33,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::Valida
     if (!data || size < kMinBufferSize)
     {
         score::mw::log::LogError() << LOG_PREFIX
-                                   << "Buffer too small or null pointer. Required: >=4 bytes, Got: " << size;
+                                   << "Buffer too small or null pointer. Required: >=4 bytes, Got:" << size;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -187,7 +187,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     std::ifstream file(std::string(filepath), std::ios::binary | std::ios::ate);
     if (!file.is_open())
     {
-        score::mw::log::LogError() << LOG_PREFIX << "Failed to open file: " << filepath;
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to open file:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -195,7 +195,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     std::streamsize size = file.tellg();
     if (size <= 0)
     {
-        score::mw::log::LogError() << LOG_PREFIX << "File is empty: " << filepath;
+        score::mw::log::LogError() << LOG_PREFIX << "File is empty:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -204,14 +204,14 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     // Read entire file into buffer
     if (size > std::numeric_limits<size_t>::max())
     {
-        score::mw::log::LogError() << LOG_PREFIX << "File size exceeds maximum allowed size: " << filepath;
+        score::mw::log::LogError() << LOG_PREFIX << "File size exceeds maximum allowed size:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
     std::vector<uint8_t> buffer(static_cast<size_t>(size));
     if (!file.read(reinterpret_cast<char*>(buffer.data()), size))
     {
-        score::mw::log::LogError() << LOG_PREFIX << "Failed to read file: " << filepath;
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to read file:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 

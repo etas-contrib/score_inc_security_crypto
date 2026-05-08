@@ -87,8 +87,8 @@ MediatorImpl::MediatorImpl(data_manager::IDataManager::Sptr data_manager,
 control_plane::ControlResponse MediatorImpl::processRequest(const control_plane::ControlRequest& request)
 {
     score::mw::log::LogDebug() << "[SCORE_API_MED] Processing request - "
-                               << "RequestId: " << request.request_id << ", Client Id: " << request.client_id
-                               << ", DataNodeId: " << request.data_node_id;
+                               << "RequestId:" << request.request_id << ", Client Id:" << request.client_id
+                               << ", DataNodeId:" << request.data_node_id;
     auto responseBuilder = control_plane::protocol::OperationResponseBuilder();
 
     for (size_t idx = 0; idx < request.operation.operations.size(); ++idx)
@@ -98,7 +98,7 @@ control_plane::ControlResponse MediatorImpl::processRequest(const control_plane:
         // Stop processing requests, once one fails. They may depend on each other
         if (!HandleSingleOperation(request, operation, responseBuilder))
         {
-            score::mw::log::LogError() << "[SCORE_API_MED] ERROR at operation index: " << idx;
+            score::mw::log::LogError() << "[SCORE_API_MED] ERROR at operation index:" << idx;
             break;
         }
     }
@@ -110,7 +110,7 @@ control_plane::ControlResponse MediatorImpl::processRequest(const control_plane:
     response.request_id = request.request_id;
     response.operation = opResponse;
 
-    score::mw::log::LogDebug() << "[SCORE_API_MED] Response operations: " << opResponse.operations.size();
+    score::mw::log::LogDebug() << "[SCORE_API_MED] Response operations:" << opResponse.operations.size();
 
     return response;
 }
@@ -198,7 +198,7 @@ bool MediatorImpl::ForwardSingleOperation(const control_plane::ControlRequest& r
     auto node_accessor_res = m_data_manager->getNodeAccessor(client_id, context_id);
     if (!node_accessor_res.has_value())
     {
-        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - No context found for context_id: " << context_id;
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - No context found for context_id:" << context_id;
         responseBuilder.operation(operationIdentifier)
             .return_error(score::mw::crypto::CryptoErrorCode::kInvalidArgument);
         return false;
@@ -208,7 +208,7 @@ bool MediatorImpl::ForwardSingleOperation(const control_plane::ControlRequest& r
         std::move(node_accessor_res).value().downCast<provider::handler::ContextDataNode>();
     if (!context_node_accessor_res.has_value())
     {
-        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Context node for context_id: " << context_id
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Context node for context_id:" << context_id
                                    << " is not a ContextDataNode";
         responseBuilder.operation(operationIdentifier)
             .return_error(score::mw::crypto::CryptoErrorCode::kInvalidArgument);
@@ -226,7 +226,7 @@ bool MediatorImpl::ForwardSingleOperation(const control_plane::ControlRequest& r
         return false;
     }
 
-    score::mw::log::LogDebug() << "[SCORE_API_MED] Context found in data manager for context_id: " << context_id;
+    score::mw::log::LogDebug() << "[SCORE_API_MED] Context found in data manager for context_id:" << context_id;
 
     // TODO: Once requests are non-const, we can drop the copy here.
     auto mutable_params = operation.parameters;
@@ -348,7 +348,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     auto create_result = crypto_ops->CreateHandler(std::string(context_type), std::string(algorithm));
     if (!create_result.has_value())
     {
-        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Handler or algorithm not supported: " << context_type
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Handler or algorithm not supported:" << context_type
                                    << "/" << algorithm;
         responseBuilder.operation(operation.operationId)
             .return_error(score::mw::crypto::CryptoErrorCode::kInternalError);
@@ -356,7 +356,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     }
 
     auto handler = create_result.value();
-    score::mw::log::LogDebug() << "[SCORE_API_MED] Created handler pointer: " << handler.get();
+    score::mw::log::LogDebug() << "[SCORE_API_MED] Created handler pointer:" << handler.get();
 
     // --- Create the context node FIRST so we have its node-id for InitializationParams ---
     auto client_id = request.client_id;
@@ -423,7 +423,7 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
         return false;
     }
 
-    score::mw::log::LogDebug() << "[SCORE_API_MED] Context node created for context_id: " << context_node_id;
+    score::mw::log::LogDebug() << "[SCORE_API_MED] Context node created for context_id:" << context_node_id;
 
     // Return context_id in response (no return_result for CTX_* operations)
     responseBuilder.operation(operation.operationId).return_success().return_value_uint64(context_node_id);
@@ -438,7 +438,7 @@ bool MediatorImpl::ExecuteOperation(const OperationExecutionContext& exec_ctx,
                                     control_plane::protocol::OperationResponseBuilder& responseBuilder)
 {
     // Execute operation
-    score::mw::log::LogDebug() << "[SCORE_API_MED] Calling handler->Execute: " << common::OpId{exec_ctx.operationId};
+    score::mw::log::LogDebug() << "[SCORE_API_MED] Calling handler->Execute:" << common::OpId{exec_ctx.operationId};
     auto execute_result = handler->Execute(exec_ctx.operationId, exec_ctx.parameters);
 
     if (!execute_result.has_value())
@@ -450,7 +450,7 @@ bool MediatorImpl::ExecuteOperation(const OperationExecutionContext& exec_ctx,
     }
 
     // Build response
-    score::mw::log::LogDebug() << "[SCORE_API_MED] " << common::OpId{exec_ctx.operationId} << " completed successfully";
+    score::mw::log::LogDebug() << "[SCORE_API_MED]" << common::OpId{exec_ctx.operationId} << " completed successfully";
     // Add all output parameters to response
     responseBuilder.return_crypto_operation_response(
         exec_ctx.operationId, control_plane::protocol::OPERATION_RESULT_SUCCESS, std::move(execute_result.value()));
@@ -468,21 +468,21 @@ bool MediatorImpl::HandleContextCloseOperation(
     auto client_id = request.client_id;
     auto context_id = request.data_node_id;
 
-    score::mw::log::LogDebug() << "[SCORE_API_MED] Closing context_id: " << context_id;
+    score::mw::log::LogDebug() << "[SCORE_API_MED] Closing context_id:" << context_id;
 
     // Remove context node from data manager
     const bool removed = m_data_manager->deleteNode(client_id, context_id).has_value();
 
     if (removed)
     {
-        score::mw::log::LogDebug() << "[SCORE_API_MED] Context_id: " << context_id << " removed from data manager";
+        score::mw::log::LogDebug() << "[SCORE_API_MED] Context_id:" << context_id << " removed from data manager";
         responseBuilder.operation(operation.operationId).return_success();
         return true;
     }
     else
     {
         // Context not found - this is not necessarily an error
-        score::mw::log::LogDebug() << "[SCORE_API_MED] WARNING - Context_id: " << context_id
+        score::mw::log::LogDebug() << "[SCORE_API_MED] WARNING - Context_id:" << context_id
                                    << " not found in data manager";
         responseBuilder.operation(operation.operationId).return_success();
         return true;

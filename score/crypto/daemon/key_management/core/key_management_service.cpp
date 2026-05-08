@@ -420,7 +420,7 @@ Expected<KeyBindingResult, score::crypto::daemon::common::DaemonErrorCode> KeyMa
             LoadOrShare({client_id, context_node_id, slot_provider_id, slot_handle}, *slot_handler, *slot_config);
         if (!ref_result.has_value())
         {
-            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: LoadOrShare failed for " << key_node_id;
+            score::mw::log::LogError() << LOG_PREFIX << "BindKeyToContext: LoadOrShare failed for" << key_node_id;
             return score::crypto::make_unexpected(ref_result.error());
         }
 
@@ -556,7 +556,7 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
         }
 
         score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: no compatible provider for slot '"
-                                   << config->slot_name << "' with type " << static_cast<int>(requested_type);
+                                   << config->slot_name << "' with type" << static_cast<int>(requested_type);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kIncompatibleKeyType);
     }
 
@@ -590,7 +590,7 @@ KeyManagementService::ResolveTargetProvider(data_manager::ClientId client_id,
         }
 
         score::mw::log::LogError() << LOG_PREFIX << "ResolveTargetProvider: key's provider '" << key_provider_id
-                                   << "' incompatible with type " << static_cast<int>(requested_type);
+                                   << "' incompatible with type" << static_cast<int>(requested_type);
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kIncompatibleKeyType);
     }
 

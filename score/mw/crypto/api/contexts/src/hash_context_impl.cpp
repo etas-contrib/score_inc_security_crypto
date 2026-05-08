@@ -117,7 +117,7 @@ score::Result<std::monostate> HashContextImpl::Init(std::optional<score::cpp::sp
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         // TODO(error-unification phase-4): Extract the specific CryptoErrorCode from the daemon
         // response (via validator.getErrorCode() or ControlResponseValidator extension) and
         // return it directly instead of the generic kOperationFailed. This gives callers
@@ -154,7 +154,7 @@ score::Result<std::monostate> HashContextImpl::Update(score::cpp::span<const uin
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_UPDATE daemon response invalid")};
     }
@@ -186,7 +186,7 @@ score::Result<std::size_t> HashContextImpl::Finalize(score::cpp::span<uint8_t> o
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINISH daemon response invalid")};
     }
@@ -244,7 +244,7 @@ score::Result<std::size_t> HashContextImpl::SingleShot(score::cpp::span<const ui
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_SS daemon response invalid")};
     }
@@ -300,7 +300,7 @@ score::Result<std::monostate> HashContextImpl::Reset()
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_RESET daemon response invalid")};
     }
@@ -335,7 +335,7 @@ std::size_t HashContextImpl::GetOutputSize() const noexcept
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return 0;
     }
 

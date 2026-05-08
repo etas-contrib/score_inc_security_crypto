@@ -55,7 +55,7 @@ class ConfigDrivenSlotCatalog final : public IKeySlotCatalog
   private:
     const config::KeyConfig& m_key_config;
 
-    static constexpr std::string_view LOG_PREFIX = "[CONFIG_DRIVEN_CATALOG] ";
+    static constexpr std::string_view LOG_PREFIX = "[CONFIG_DRIVEN_CATALOG]";
 };
 
 }  // namespace score::crypto::daemon::key_management

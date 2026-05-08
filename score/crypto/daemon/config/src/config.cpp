@@ -88,10 +88,10 @@ bool Config::ParseConfig()
     {
         if (!std::filesystem::exists(config_file_path))
         {
-            score::mw::log::LogError() << "[CONFIG] Configuration file does not exist: " << config_file_path;
+            score::mw::log::LogError() << "[CONFIG] Configuration file does not exist:" << config_file_path;
             return false;
         }
-        score::mw::log::LogDebug() << "[CONFIG] Parsing configuration from: " << config_file_path;
+        score::mw::log::LogDebug() << "[CONFIG] Parsing configuration from:" << config_file_path;
         auto result = FlatBufferConfigParser::ParseFromFile(config_file_path, m_key);
         if (!result.has_value())
         {
@@ -107,11 +107,11 @@ bool Config::ParseConfig()
     {
         if (std::filesystem::exists(path))
         {
-            score::mw::log::LogDebug() << "[CONFIG] Found configuration at default path: " << path;
+            score::mw::log::LogDebug() << "[CONFIG] Found configuration at default path:" << path;
             auto result = FlatBufferConfigParser::ParseFromFile(path, m_key);
             if (!result.has_value())
             {
-                score::mw::log::LogError() << "[CONFIG] Failed to parse configuration from: " << path;
+                score::mw::log::LogError() << "[CONFIG] Failed to parse configuration from:" << path;
                 return false;
             }
             return true;
@@ -121,7 +121,7 @@ bool Config::ParseConfig()
     score::mw::log::LogError() << "[CONFIG] ERROR: No configuration file found in default paths:";
     for (const auto& path : DEFAULT_CONFIG_PATHS)
     {
-        score::mw::log::LogError() << "  - " << path;
+        score::mw::log::LogError() << "  -" << path;
     }
     return false;
 }

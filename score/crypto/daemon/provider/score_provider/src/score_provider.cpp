@@ -28,7 +28,7 @@ bool ScoreProvider::Initialize(const ProviderInitContext& ctx)
     m_provider_name = ctx.name;
     m_initialized = true;
 
-    score::mw::log::LogDebug() << "[ScoreProvider] Initialized (ID: " << m_numeric_id << ", Name: " << m_provider_name
+    score::mw::log::LogDebug() << "[ScoreProvider] Initialized (ID:" << m_numeric_id << ", Name:" << m_provider_name
                                << ")";
     return true;
 }

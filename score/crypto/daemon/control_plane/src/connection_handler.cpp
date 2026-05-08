@@ -36,14 +36,14 @@ ConnectionHandler::ConnectionHandler(std::unique_ptr<IRequestHandler> next_reque
 
 ControlResponse ConnectionHandler::processRequest(const ControlRequest& request)
 {
-    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Received request - Request ID: " << request.request_id
-                               << ", Client Id ID: " << request.client_id << ", UID: " << request.uid
-                               << ", PID: " << request.pid << ", Data Node Id: " << request.data_node_id
-                               << ", Data Node Value: " << request.node_id_value
-                               << ", Data Node Tag: " << request.node_tag_value;
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Received request - Request ID:" << request.request_id
+                               << ", Client Id ID:" << request.client_id << ", UID:" << request.uid
+                               << ", PID:" << request.pid << ", Data Node Id:" << request.data_node_id
+                               << ", Data Node Value:" << request.node_id_value
+                               << ", Data Node Tag:" << request.node_tag_value;
     std::ostringstream tid;
     tid << std::this_thread::get_id();
-    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Thread ID: " << tid.str();
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Thread ID:" << tid.str();
     // Validate empty request
     if (request.operation.operations.empty())
     {
@@ -128,7 +128,7 @@ bool ConnectionHandler::ProcessConnectionCreation(const ControlRequest& request,
 
     auto connection_id = dataNodeIdRes.value();
 
-    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Created connection with connection_id: " << connection_id;
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Created connection with connection_id:" << connection_id;
 
     // Build success response with connection_id
     responseBuilder.operation(opId).return_success().return_value_uint64(connection_id);
@@ -143,15 +143,15 @@ bool ConnectionHandler::ProcessConnectionClosure(const ControlRequest& request,
     auto connection_id = request.data_node_id;
     auto client_id = request.client_id;
 
-    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Closing client_id: " << client_id
-                               << " connection_id: " << connection_id;
+    score::mw::log::LogDebug() << "[CONTROL_HANDLER] Closing client_id:" << client_id
+                               << " connection_id:" << connection_id;
 
     // Clear all contexts associated with this connection by removing the connection node
     // This will cascade delete all child context nodes
     auto result = m_data_manager->deleteNode(client_id, connection_id);
     if (!result.has_value())
     {
-        score::mw::log::LogDebug() << "[CONTROL_HANDLER] Warning Connection_id: " << connection_id << " not found";
+        score::mw::log::LogDebug() << "[CONTROL_HANDLER] Warning Connection_id:" << connection_id << " not found";
     }
 
     responseBuilder.operation(opId).return_success();

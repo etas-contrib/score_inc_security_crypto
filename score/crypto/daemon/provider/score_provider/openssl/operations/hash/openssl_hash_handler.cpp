@@ -83,7 +83,7 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::ValidateAlgorithm(
 Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::InitializeContext(
     const ::score::crypto::daemon::provider::handler::InitializationParams& init_params)
 {
-    score::mw::log::LogDebug() << "DEBUG: InitializeContext called with algorithm: " << m_algorithm;
+    score::mw::log::LogDebug() << "DEBUG: InitializeContext called with algorithm:" << m_algorithm;
 
     // Validate the algorithm
     const auto result = ValidateAlgorithm(m_algorithm);
@@ -123,8 +123,8 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::StartHash(
 {
     std::ostringstream tid;
     tid << std::this_thread::get_id();
-    score::mw::log::LogDebug() << "DEBUG: StartHash called with algorithm: " << m_algorithm
-                               << ", thread ID: " << tid.str() << ", this: " << reinterpret_cast<uintptr_t>(this);
+    score::mw::log::LogDebug() << "DEBUG: StartHash called with algorithm:" << m_algorithm
+                               << ", thread ID:" << tid.str() << ", this:" << reinterpret_cast<uintptr_t>(this);
     const EVP_MD* md = GetEVPMD(m_algorithm);
     if (md == nullptr)
     {
@@ -373,7 +373,7 @@ void OpenSslHashHandler::AllocateOutputBuffer(size_t size)
 {
     mOutputBuffer.clear();
     mOutputBuffer.resize(size);
-    score::mw::log::LogDebug() << "[HASH_HANDLER] Output buffer allocated with size: " << size;
+    score::mw::log::LogDebug() << "[HASH_HANDLER] Output buffer allocated with size:" << size;
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::openssl::handler

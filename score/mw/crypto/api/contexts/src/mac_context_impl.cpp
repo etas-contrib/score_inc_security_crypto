@@ -106,7 +106,7 @@ score::Result<std::monostate> MacContextImpl::Update(score::cpp::span<const uint
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_UPDATE daemon response invalid")};
     }
@@ -134,7 +134,7 @@ score::Result<std::size_t> MacContextImpl::Finalize(score::cpp::span<uint8_t> ou
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINAL daemon response invalid")};
     }
@@ -189,7 +189,7 @@ score::Result<bool> MacContextImpl::Verify(score::cpp::span<const uint8_t> mac)
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<bool>{score::unexpect,
                                    MakeError(CryptoErrorCode::kOperationFailed, "MAC_VERIFY daemon response invalid")};
     }
@@ -226,7 +226,7 @@ score::Result<std::monostate> MacContextImpl::Reset()
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_RESET daemon response invalid")};
     }
@@ -258,7 +258,7 @@ std::size_t MacContextImpl::GetOutputSize() const noexcept
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return 0;
     }
 
@@ -298,7 +298,7 @@ score::Result<std::monostate> MacContextImpl::Init(std::optional<score::cpp::spa
 
     if (!validator.isValid())
     {
-        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: " << validator.getError();
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_INIT daemon response invalid")};
     }

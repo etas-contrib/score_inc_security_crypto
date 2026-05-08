@@ -52,7 +52,7 @@ class DeploymentWriter
     Write(const std::string& path, const std::string& format, const SlotDeploymentInfo& info);
 
   private:
-    static constexpr std::string_view LOG_PREFIX = "[DEPLOYMENT_WRITER] ";
+    static constexpr std::string_view LOG_PREFIX = "[DEPLOYMENT_WRITER]";
 };
 
 }  // namespace score::crypto::daemon::key_management

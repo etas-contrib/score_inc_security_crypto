@@ -92,9 +92,9 @@ GrpcControlClient::SendRequest(const daemon::control_plane::protocol::ControlReq
     {
         std::ostringstream tid;
         tid << std::this_thread::get_id();
-        score::mw::log::LogError() << "[GrpcControlClient] [Thread " << tid.str() << "] "
-                                   << "gRPC call failed for RequestID: " << request.request_id
-                                   << " | Error: " << status.error_message();
+        score::mw::log::LogError() << "[GrpcControlClient] [Thread" << tid.str() << "] "
+                                   << "gRPC call failed for RequestID:" << request.request_id
+                                   << " | Error:" << status.error_message();
         return make_unexpected(score::mw::crypto::CryptoErrorCode::kInternalError);
     }
     // Convert FlatBuffer response → business logic
@@ -315,7 +315,7 @@ daemon::common::ResponseParameters GrpcControlClient::Impl::ExtractResponseParam
                 // for the concrete type.
 
                 score::mw::log::LogError()
-                    << "[GrpcControlClient] ERROR - Unsupported parameter type: " << static_cast<int>(param_type);
+                    << "[GrpcControlClient] ERROR - Unsupported parameter type:" << static_cast<int>(param_type);
                 break;
             }
         }

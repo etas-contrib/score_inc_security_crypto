@@ -101,7 +101,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> DataNod
     }
     else
     {
-        score::mw::log::LogError() << LOG_PREFIX << "removeChild could not find child with nodeId: " << nodeId;
+        score::mw::log::LogError() << LOG_PREFIX << "removeChild could not find child with nodeId:" << nodeId;
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 

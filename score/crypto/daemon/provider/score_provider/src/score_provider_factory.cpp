@@ -37,7 +37,7 @@ bool ScoreProviderFactory::CreateAndRegister(ProviderManager& manager)
             if (!openssl_factory.CreateAndRegister(manager))
             {
                 score::mw::log::LogError()
-                    << "[ScoreProviderFactory] Failed to create OpenSSL provider: " << entry.providerName;
+                    << "[ScoreProviderFactory] Failed to create OpenSSL provider:" << entry.providerName;
                 all_ok = false;
             }
         }

@@ -83,7 +83,7 @@ bool Pkcs11Provider::Initialize(const ProviderInitContext& ctx)
     // This avoids circular dependencies where the factory needs the service.
 
     m_initialized = true;
-    score::mw::log::LogDebug() << "[PKCS#11] Provider (ID: " << m_numeric_id << ", Name: " << m_provider_name
+    score::mw::log::LogDebug() << "[PKCS#11] Provider (ID:" << m_numeric_id << ", Name:" << m_provider_name
                                << ") initialised successfully";
     return true;
 }
@@ -133,7 +133,7 @@ bool Pkcs11Provider::AutodiscoverSlot() noexcept
     if (!result.has_value())
     {
         score::mw::log::LogError() << "[PKCS#11] Error: Failed to find slot for token '" << m_config.tokenLabel
-                                   << "' (error: " << static_cast<int>(result.error()) << ")";
+                                   << "' (error:" << static_cast<int>(result.error()) << ")";
         return false;
     }
 
@@ -155,7 +155,7 @@ bool Pkcs11Provider::QuerySessionLimits() noexcept
     const CK_RV rv = m_module->GetFunctionList()->C_GetTokenInfo(m_config.slotId, &tokenInfo);
     if (rv != CKR_OK)
     {
-        score::mw::log::LogError() << "[PKCS#11] Error: C_GetTokenInfo failed on slot " << m_config.slotId
+        score::mw::log::LogError() << "[PKCS#11] Error: C_GetTokenInfo failed on slot" << m_config.slotId
                                    << " (rv=" << static_cast<unsigned long>(rv) << ")";
         return false;
     }
@@ -181,8 +181,8 @@ bool Pkcs11Provider::SeedSessionPool() noexcept
     const auto result = seedSession->Open(*m_module, m_config.slotId, Pkcs11SessionType::ReadOnly);
     if (!result.has_value())
     {
-        score::mw::log::LogError() << "[PKCS#11] Error: Failed to open initial session on slot " << m_config.slotId
-                                   << " (error " << static_cast<int>(result.error()) << ")";
+        score::mw::log::LogError() << "[PKCS#11] Error: Failed to open initial session on slot" << m_config.slotId
+                                   << " (error" << static_cast<int>(result.error()) << ")";
         return false;
     }
     m_roPool.push_back(PooledSession{std::move(seedSession), false});

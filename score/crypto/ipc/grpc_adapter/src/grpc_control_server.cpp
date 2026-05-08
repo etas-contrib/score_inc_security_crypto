@@ -81,12 +81,12 @@ void GrpcControlServer::Stop()
         {
             if (unlink(_impl->socket_path.c_str()) == 0)
             {
-                score::mw::log::LogDebug() << "[GrpcControlServer] Cleaned up socket file: " << _impl->socket_path;
+                score::mw::log::LogDebug() << "[GrpcControlServer] Cleaned up socket file:" << _impl->socket_path;
             }
             else if (errno != ENOENT)
             {
                 score::mw::log::LogError() << "[GrpcControlServer] Warning: Failed to remove socket file "
-                                           << _impl->socket_path << ": " << strerror(errno);
+                                           << _impl->socket_path << ":" << strerror(errno);
             }
             _impl->socket_path.clear();
         }

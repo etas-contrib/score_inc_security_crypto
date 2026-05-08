@@ -28,7 +28,7 @@ score::crypto::Expected<SlotDeploymentInfo, score::crypto::daemon::common::Daemo
 {
     if (!IsDeploymentPathSafe(path))
     {
-        score::mw::log::LogError() << LOG_PREFIX << "Unsafe deployment path rejected: " << path;
+        score::mw::log::LogError() << LOG_PREFIX << "Unsafe deployment path rejected:" << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -39,7 +39,7 @@ score::crypto::Expected<SlotDeploymentInfo, score::crypto::daemon::common::Daemo
     // To add a new format: include its header above and add a branch here.
     // Example: if (format == "json") { return JsonDeploymentLoader{}.Load(path); }
 
-    score::mw::log::LogError() << LOG_PREFIX << "Unsupported deployment format: " << format;
+    score::mw::log::LogError() << LOG_PREFIX << "Unsupported deployment format:" << format;
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
 }
 
