@@ -12,8 +12,9 @@
 
 #include "score/crypto/daemon/key_management/slot/deployment/kv/kv_deployment_writer.hpp"
 
+#include "score/mw/log/logging.h"
 #include <fstream>
-#include <iostream>
+
 #include <string>
 
 namespace score::crypto::daemon::key_management
@@ -26,7 +27,7 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
     std::ofstream file(path, std::ios::trunc);
     if (!file.is_open())
     {
-        std::cerr << kLogPrefix << "Cannot open deployment descriptor for writing: " << path << '\n';
+        score::mw::log::LogError() << kLogPrefix << "Cannot open deployment descriptor for writing:" << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -44,7 +45,7 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
 
     if (!file.good())
     {
-        std::cerr << kLogPrefix << "Write error for deployment descriptor: " << path << '\n';
+        score::mw::log::LogError() << kLogPrefix << "Write error for deployment descriptor:" << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 

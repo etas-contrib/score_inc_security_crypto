@@ -91,7 +91,7 @@ class Pkcs11KeyManagementHandler final : public handler::Handler
     std::unique_ptr<crypto_executor::KeyManagementExecutor> m_executor;
     crypto_executor::KeyMgmtExecutionContext m_ctx;
 
-    static constexpr std::string_view LOG_PREFIX = "[PKCS11_KEY_MGMT_HANDLER] ";
+    static constexpr std::string_view LOG_PREFIX = "[PKCS11_KEY_MGMT_HANDLER]";
 };
 
 }  // namespace score::crypto::daemon::provider::pkcs11

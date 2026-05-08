@@ -15,7 +15,8 @@
 #include "score/crypto/daemon/key_management/slot/config_driven_slot_catalog.hpp"
 #include "score/crypto/daemon/provider/i_provider.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <memory>
 
 namespace score::crypto::daemon::key_management
@@ -53,9 +54,8 @@ KeyManagementModule::Sptr KeyManagementModule::Create(data_manager::IDataManager
     // This must happen after providers are registered and SetKeyManagementService is called.
     module->m_slot_registry->ResolveProviderIds(*provider_manager);
 
-    std::cout << LOG_PREFIX
-              << "Key management module initialized from config. Slots: " << module->m_slot_registry->GetSlotCount()
-              << '\n';
+    score::mw::log::LogDebug() << LOG_PREFIX << "Key management module initialized from config. Slots: "
+                               << module->m_slot_registry->GetSlotCount();
 
     return module;
 }

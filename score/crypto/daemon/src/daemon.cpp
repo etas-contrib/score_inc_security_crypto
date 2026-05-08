@@ -10,11 +10,12 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
+#include "score/mw/log/logging.h"
 #include <atomic>
 #include <chrono>
 #include <csignal>
 #include <cstring>
-#include <iostream>
+
 #include <memory>
 #include <thread>
 
@@ -62,7 +63,7 @@ int main(int argc, char** argv)
     // Parse configuration from multiple sources (priority: file < env < cmdline)
     if (!config.ParseConfig())
     {
-        std::cerr << "Warning: Could not parse config file (may not exist)" << std::endl;
+        score::mw::log::LogError() << "Warning: Could not parse config file (may not exist)";
     }
 
     auto provider_manager = std::make_shared<score::crypto::daemon::provider::ProviderManager>(config);
@@ -121,10 +122,10 @@ int main(int argc, char** argv)
     }
 
     // Shutdown sequence
-    std::cout << "Termination requested, shutting down daemon..." << std::endl;
+    score::mw::log::LogDebug() << "Termination requested, shutting down daemon...";
     server->Stop();
     server_thread.join();
 
-    std::cout << "Daemon shutdown complete" << std::endl;
+    score::mw::log::LogDebug() << "Daemon shutdown complete";
     return 0;
 }

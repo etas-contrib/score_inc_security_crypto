@@ -43,5 +43,6 @@ cc_library(
         "//score/crypto/daemon/control_plane",
         "//score/crypto/ipc:ipc_config",
         "//score/crypto/ipc/grpc_adapter:grpc_control_client",
+        "@score_baselibs//score/mw/log",
     ],
 )

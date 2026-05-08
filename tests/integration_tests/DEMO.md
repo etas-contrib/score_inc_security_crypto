@@ -26,9 +26,13 @@ cp -r tests/test_vectors/config/*.kv /opt/crypto/deploy
 ```
 export CRYPTO_CONFIG_FILE=/opt/crypto/tests/test_vectors/config/integration_test_config.bin
 export SOFTHSM2_CONF=/tmp/softhsm2.conf
+export MW_LOG_CONFIG_FILE=tests/config/logging.json
 
 ./bazel-bin/score/crypto/daemon/crypto_daemon
 ```
+
+> `MW_LOG_CONFIG_FILE` points to the logging config in `tests/config/logging.json`.
+> It enables verbose console logging (`kVerbose`). Omit it to fall back to the default log level (`kWarn`) — debug messages will not be shown.
 
 ## Start Demo
 

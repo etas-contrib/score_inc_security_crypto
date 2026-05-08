@@ -61,7 +61,7 @@ class DeploymentLoader
     Load(const std::string& path, const std::string& format);
 
   private:
-    static constexpr std::string_view LOG_PREFIX = "[DEPLOYMENT_LOADER] ";
+    static constexpr std::string_view LOG_PREFIX = "[DEPLOYMENT_LOADER]";
 };
 
 }  // namespace score::crypto::daemon::key_management

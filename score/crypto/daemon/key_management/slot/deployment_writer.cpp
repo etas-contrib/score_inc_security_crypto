@@ -15,7 +15,8 @@
 #include "score/crypto/daemon/key_management/slot/deployment/deployment_path_utils.hpp"
 #include "score/crypto/daemon/key_management/slot/deployment/kv/kv_deployment_writer.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <string>
 
 namespace score::crypto::daemon::key_management
@@ -26,7 +27,7 @@ DeploymentWriter::Write(const std::string& path, const std::string& format, cons
 {
     if (!IsDeploymentPathSafe(path))
     {
-        std::cerr << LOG_PREFIX << "Unsafe deployment path rejected: " << path << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "Unsafe deployment path rejected:" << path;
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -37,7 +38,7 @@ DeploymentWriter::Write(const std::string& path, const std::string& format, cons
     // To add a new format: include its header above and add a branch here.
     // Example: if (format == "json") { return JsonDeploymentWriter{}.Write(path, info); }
 
-    std::cerr << LOG_PREFIX << "Unsupported deployment format: " << format << '\n';
+    score::mw::log::LogError() << LOG_PREFIX << "Unsupported deployment format:" << format;
     return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kUnsupportedOperation);
 }
 

@@ -24,10 +24,11 @@
 #include "score/result/result.h"
 #include "score/span.hpp"
 
+#include "score/mw/log/logging.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
+
 #include <memory>
 #include <optional>
 #include <utility>
@@ -55,7 +56,7 @@ HashContextImpl::~HashContextImpl()
 {
     if (!m_connection)
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Connection is not initialized during destruction\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Connection is not initialized during destruction";
         return;
     }
 
@@ -67,7 +68,8 @@ HashContextImpl::~HashContextImpl()
 
     if (!context_close_res.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build CTX_CLOSE request during destruction\n";
+        score::mw::log::LogError()
+            << "[API][HashContextImpl] ERROR: Failed to build CTX_CLOSE request during destruction";
         return;
     }
 
@@ -80,8 +82,8 @@ HashContextImpl::~HashContextImpl()
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: CTX_CLOSE response validation failed: " << validator.getError()
-                  << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: CTX_CLOSE response validation failed: "
+                                   << validator.getError();
         return;
     }
 }
@@ -101,7 +103,7 @@ score::Result<std::monostate> HashContextImpl::Init(std::optional<score::cpp::sp
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build HASH_INIT request\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_INIT request";
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_INIT request")};
     }
@@ -115,7 +117,7 @@ score::Result<std::monostate> HashContextImpl::Init(std::optional<score::cpp::sp
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         // TODO(error-unification phase-4): Extract the specific CryptoErrorCode from the daemon
         // response (via validator.getErrorCode() or ControlResponseValidator extension) and
         // return it directly instead of the generic kOperationFailed. This gives callers
@@ -138,7 +140,7 @@ score::Result<std::monostate> HashContextImpl::Update(score::cpp::span<const uin
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build HASH_UPDATE request\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_UPDATE request";
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_UPDATE request")};
     }
@@ -152,7 +154,7 @@ score::Result<std::monostate> HashContextImpl::Update(score::cpp::span<const uin
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_UPDATE daemon response invalid")};
     }
@@ -170,7 +172,7 @@ score::Result<std::size_t> HashContextImpl::Finalize(score::cpp::span<uint8_t> o
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build HASH_FINISH request\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_FINISH request";
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_FINISH request")};
     }
@@ -184,7 +186,7 @@ score::Result<std::size_t> HashContextImpl::Finalize(score::cpp::span<uint8_t> o
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINISH daemon response invalid")};
     }
@@ -192,7 +194,7 @@ score::Result<std::size_t> HashContextImpl::Finalize(score::cpp::span<uint8_t> o
     auto hash_result = validator.getParameterAt<proto::DataBufferReturn>(0, 0);
     if (!hash_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: HASH_FINISH response has invalid parameter type\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: HASH_FINISH response has invalid parameter type";
         return score::Result<std::size_t>{
             score::unexpect,
             MakeError(CryptoErrorCode::kOperationFailed, "HASH_FINISH response has invalid parameter type")};
@@ -207,7 +209,8 @@ score::Result<std::size_t> HashContextImpl::Finalize(score::cpp::span<uint8_t> o
     // at least a sub-set of operations / algorithms.
     if (bytes_to_copy < hash_data.size())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Output buffer too small for full hash, truncated copy performed\n";
+        score::mw::log::LogError()
+            << "[API][HashContextImpl] ERROR: Output buffer too small for full hash, truncated copy performed";
         return score::Result<std::size_t>{
             score::unexpect,
             MakeError(CryptoErrorCode::kInsufficientBufferSize,
@@ -228,7 +231,7 @@ score::Result<std::size_t> HashContextImpl::SingleShot(score::cpp::span<const ui
 
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build HASH_SS request\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_SS request";
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_SS request")};
     }
@@ -241,7 +244,7 @@ score::Result<std::size_t> HashContextImpl::SingleShot(score::cpp::span<const ui
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_SS daemon response invalid")};
     }
@@ -249,7 +252,7 @@ score::Result<std::size_t> HashContextImpl::SingleShot(score::cpp::span<const ui
     auto hash_result = validator.getParameterAt<proto::DataBufferReturn>(0, 0);
     if (!hash_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: HASH_SS response has invalid parameter type\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: HASH_SS response has invalid parameter type";
         return score::Result<std::size_t>{
             score::unexpect,
             MakeError(CryptoErrorCode::kOperationFailed, "HASH_SS response has invalid parameter type")};
@@ -264,7 +267,8 @@ score::Result<std::size_t> HashContextImpl::SingleShot(score::cpp::span<const ui
     // at least a sub-set of operations / algorithms.
     if (bytes_to_copy < hash_data.size())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Output buffer too small for full hash, truncated copy performed\n";
+        score::mw::log::LogError()
+            << "[API][HashContextImpl] ERROR: Output buffer too small for full hash, truncated copy performed";
         return score::Result<std::size_t>{
             score::unexpect,
             MakeError(CryptoErrorCode::kInsufficientBufferSize,
@@ -282,7 +286,7 @@ score::Result<std::monostate> HashContextImpl::Reset()
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build HASH_RESET request\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_RESET request";
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build HASH_RESET request")};
     }
@@ -296,7 +300,7 @@ score::Result<std::monostate> HashContextImpl::Reset()
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "HASH_RESET daemon response invalid")};
     }
@@ -318,7 +322,7 @@ std::size_t HashContextImpl::GetOutputSize() const noexcept
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: Failed to build HASH_GET_DIGEST_SIZE request\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR: Failed to build HASH_GET_DIGEST_SIZE request";
         return 0;
     }
 
@@ -331,14 +335,15 @@ std::size_t HashContextImpl::GetOutputSize() const noexcept
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][HashContextImpl] ERROR:" << validator.getError();
         return 0;
     }
 
     auto size_result = validator.getParameterAt<std::uint64_t>(0, 0);
     if (!size_result.has_value())
     {
-        std::cerr << "[API][HashContextImpl] ERROR: HASH_GET_DIGEST_SIZE response has invalid parameter type\n";
+        score::mw::log::LogError()
+            << "[API][HashContextImpl] ERROR: HASH_GET_DIGEST_SIZE response has invalid parameter type";
         return 0;
     }
 

@@ -13,7 +13,7 @@
 #include "score/crypto/daemon/provider/pkcs11/key_management/pkcs11_key_handler.hpp"
 #include "score/crypto/daemon/provider/pkcs11/key_management/pkcs11_key_store.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::provider::pkcs11
 {
@@ -26,7 +26,7 @@ Pkcs11KeyHandler::Pkcs11KeyHandler(std::weak_ptr<Pkcs11KeyStore> key_store,
 
 Pkcs11KeyHandler::~Pkcs11KeyHandler()
 {
-    std::cout << "[PKCS11_KEY_HANDLER] Release Key\n";
+    score::mw::log::LogDebug() << "[PKCS11_KEY_HANDLER] Release Key";
     static_cast<void>(Release());
 }
 

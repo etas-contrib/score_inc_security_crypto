@@ -13,7 +13,8 @@
 #ifndef CRYPTO_DAEMON_DATA_MANAGER_DATA_NODE_ACCESSOR_HPP_
 #define CRYPTO_DAEMON_DATA_MANAGER_DATA_NODE_ACCESSOR_HPP_
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <memory>
 #include <string_view>
 #include <type_traits>
@@ -75,8 +76,8 @@ class DataNodeAccessor
         {
             if (!m_manager->releaseNodeAccessor(m_node->getClientId(), m_node->getNodeId()).has_value())
             {
-                std::cerr << LOG_PREFIX << "Failed to release node (" << m_node->getClientId() << ", "
-                          << m_node->getNodeId() << ") in destructor\n";
+                score::mw::log::LogError() << LOG_PREFIX << "Failed to release node (" << m_node->getClientId() << ", "
+                                           << m_node->getNodeId() << ") in destructor";
             }
         }
     }
@@ -120,8 +121,8 @@ class DataNodeAccessor
         {
             if (!m_manager->releaseNodeAccessor(m_node->getClientId(), m_node->getNodeId()).has_value())
             {
-                std::cerr << LOG_PREFIX << "Failed to release node (" << m_node->getClientId() << ", "
-                          << m_node->getNodeId() << ") in move assignment operator\n";
+                score::mw::log::LogError() << LOG_PREFIX << "Failed to release node (" << m_node->getClientId() << ", "
+                                           << m_node->getNodeId() << ") in move assignment operator";
             }
         }
 
@@ -187,7 +188,7 @@ class DataNodeAccessor
         auto derived = std::dynamic_pointer_cast<Derived>(m_node);
         if (derived == nullptr)
         {
-            std::cerr << LOG_PREFIX << "Could not convert to derived type\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Could not convert to derived type";
             return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidDataType);
         }
 

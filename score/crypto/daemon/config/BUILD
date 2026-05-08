@@ -60,6 +60,7 @@ cc_library(
         "//score/crypto/common:common_types",
         "//score/crypto/daemon/common",
         "@flatbuffers",
+        "@score_baselibs//score/mw/log",
     ],
 )
 
