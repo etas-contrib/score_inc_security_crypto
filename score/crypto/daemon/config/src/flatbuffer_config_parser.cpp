@@ -10,8 +10,9 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
+#include "score/mw/log/logging.h"
 #include <fstream>
-#include <iostream>
+
 #include <limits>
 #include <variant>
 #include <vector>
@@ -31,13 +32,14 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::Valida
 {
     if (!data || size < kMinBufferSize)
     {
-        std::cerr << LOG_PREFIX << "Buffer too small or null pointer. Required: >=4 bytes, Got: " << size << "\n";
+        score::mw::log::LogError() << LOG_PREFIX
+                                   << "Buffer too small or null pointer. Required: >=4 bytes, Got:" << size;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
     if (!CryptoConfigBufferHasIdentifier(data))
     {
-        std::cerr << LOG_PREFIX << "Buffer does not have expected file identifier\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Buffer does not have expected file identifier";
         return make_unexpected(common::DaemonErrorCode::kInternalError);
     }
 
@@ -49,7 +51,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseK
 {
     if (!root)
     {
-        std::cerr << LOG_PREFIX << "Failed to get FlatBuffers root object\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to get FlatBuffers root object";
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -57,7 +59,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseK
     const auto* key_slot_config = root->key_slot_config();
     if (!key_slot_config)
     {
-        std::cerr << LOG_PREFIX << "Failed to get key_slot_config from root object\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to get key_slot_config from root object";
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -75,8 +77,9 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseK
         return make_unexpected(app_resource_result.error());
     }
 
-    std::cout << LOG_PREFIX << "Successfully parsed configuration. Loaded " << out_config.GetSlotEntries().size()
-              << " slot(s) and " << out_config.GetAppResourceEntries().size() << " app resource mapping(s).\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "Successfully parsed configuration. Loaded "
+                               << out_config.GetSlotEntries().size() << " slot(s) and "
+                               << out_config.GetAppResourceEntries().size() << " app resource mapping(s).";
 
     return std::monostate{};
 }
@@ -95,7 +98,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseS
     {
         if (!entry)
         {
-            std::cerr << LOG_PREFIX << "Null slot entry encountered - invalid configuration\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Null slot entry encountered - invalid configuration";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
 
@@ -103,21 +106,21 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseS
 
         if (!entry->slot_name())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'slot_name'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'slot_name'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         slot_entry.slot_name = entry->slot_name()->str();
 
         if (!entry->algorithm())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'algorithm'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'algorithm'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         slot_entry.algorithm = entry->algorithm()->str();
 
         if (!entry->provider_names())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'provider_names'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'provider_names'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         for (const auto* provider : *entry->provider_names())
@@ -130,14 +133,14 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseS
 
         if (!entry->allowed_operations())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'allowed_operations'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'allowed_operations'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         slot_entry.allowed_operations = entry->allowed_operations()->str();
 
         if (!entry->allowed_uids())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'allowed_uids'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'allowed_uids'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         for (auto uid : *entry->allowed_uids())
@@ -147,7 +150,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseS
 
         if (!entry->allowed_write_uids())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'allowed_write_uids'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'allowed_write_uids'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         for (auto uid : *entry->allowed_write_uids())
@@ -157,21 +160,22 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseS
 
         if (!entry->deployment_path())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'deployment_path'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'deployment_path'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         slot_entry.deployment_path = entry->deployment_path()->str();
 
         if (!entry->deployment_format())
         {
-            std::cerr << LOG_PREFIX << "Slot entry missing required field 'deployment_format'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Slot entry missing required field 'deployment_format'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         slot_entry.deployment_format = entry->deployment_format()->str();
 
         out_config.AddSlotEntry(std::move(slot_entry));
 
-        std::cout << LOG_PREFIX << "Loaded slot: '" << out_config.GetSlotEntries().back().slot_name << "'\n";
+        score::mw::log::LogDebug() << LOG_PREFIX << "Loaded slot: '" << out_config.GetSlotEntries().back().slot_name
+                                   << "'";
     }
 
     return std::monostate{};
@@ -183,7 +187,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     std::ifstream file(std::string(filepath), std::ios::binary | std::ios::ate);
     if (!file.is_open())
     {
-        std::cerr << LOG_PREFIX << "Failed to open file: " << filepath << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to open file:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -191,7 +195,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     std::streamsize size = file.tellg();
     if (size <= 0)
     {
-        std::cerr << LOG_PREFIX << "File is empty: " << filepath << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "File is empty:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -200,14 +204,14 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     // Read entire file into buffer
     if (size > std::numeric_limits<size_t>::max())
     {
-        std::cerr << LOG_PREFIX << "File size exceeds maximum allowed size: " << filepath << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "File size exceeds maximum allowed size:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
     std::vector<uint8_t> buffer(static_cast<size_t>(size));
     if (!file.read(reinterpret_cast<char*>(buffer.data()), size))
     {
-        std::cerr << LOG_PREFIX << "Failed to read file: " << filepath << "\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to read file:" << filepath;
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
@@ -228,7 +232,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseA
     {
         if (!entry)
         {
-            std::cerr << LOG_PREFIX << "Null app resource entry encountered - invalid configuration\n";
+            score::mw::log::LogError() << LOG_PREFIX << "Null app resource entry encountered - invalid configuration";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
 
@@ -238,14 +242,14 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseA
         // All fields below are required per schema - add defensive checks
         if (!entry->app_resource_id())
         {
-            std::cerr << LOG_PREFIX << "App resource entry missing required field 'app_resource_id'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "App resource entry missing required field 'app_resource_id'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         resource_entry.app_resource_id = entry->app_resource_id()->str();
 
         if (!entry->slot_name())
         {
-            std::cerr << LOG_PREFIX << "App resource entry missing required field 'slot_name'\n";
+            score::mw::log::LogError() << LOG_PREFIX << "App resource entry missing required field 'slot_name'";
             return make_unexpected(common::DaemonErrorCode::kInternalError);
         }
         resource_entry.slot_name = entry->slot_name()->str();
@@ -262,14 +266,14 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
 {
     if (!data || size == 0)
     {
-        std::cerr << LOG_PREFIX << "Invalid buffer: null pointer or zero size\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Invalid buffer: null pointer or zero size";
         return make_unexpected(common::DaemonErrorCode::kInvalidArgument);
     }
 
     auto validateRes = ValidateBuffer(data, size);
     if (!validateRes.has_value())
     {
-        std::cerr << LOG_PREFIX << "Buffer validation failed\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Buffer validation failed";
         return make_unexpected(validateRes.error());
     }
 
@@ -277,7 +281,7 @@ Expected<std::monostate, common::DaemonErrorCode> FlatBufferConfigParser::ParseF
     const auto* root = flatbuffers::GetRoot<CryptoConfig>(data);
     if (!root)
     {
-        std::cerr << LOG_PREFIX << "Failed to get FlatBuffers root object from buffer\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Failed to get FlatBuffers root object from buffer";
         return make_unexpected(common::DaemonErrorCode::kInternalError);
     }
 

@@ -121,7 +121,7 @@ class Pkcs11MacHandler final : public handler::Handler
     common::StreamOperationState m_state{common::StreamOperationState::IDLE};
     handler::InitializationParams m_init_params;  ///< saved for Reset()
 
-    static constexpr std::string_view LOG_PREFIX = "[PKCS11_MAC_HANDLER] ";
+    static constexpr std::string_view LOG_PREFIX = "[PKCS11_MAC_HANDLER]";
 };
 
 }  // namespace score::crypto::daemon::provider::pkcs11

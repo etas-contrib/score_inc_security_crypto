@@ -22,7 +22,8 @@
 
 #include "score/result/result.h"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <memory>
 #include <utility>
 
@@ -53,7 +54,7 @@ score::Result<ICryptoContext::Uptr> CryptoStackImpl::CreateCryptoContext()
 
     if (!m_connection)
     {
-        std::cerr << "[API][CryptoStackImpl] ERROR: Connection is not initialized\n";
+        score::mw::log::LogError() << "[API][CryptoStackImpl] ERROR: Connection is not initialized";
         return score::Result<ICryptoContext::Uptr>{
             score::unexpect, MakeError(CryptoErrorCode::kConnectionFailed, "Connection is not initialized")};
     }
@@ -66,7 +67,7 @@ score::Result<IMemoryAllocator::Uptr> CryptoStackImpl::GetMemoryAllocator()
 {
     // TODO: Implement shared-memory allocator for data-plane zero-copy path.
     //       For now, this is not needed by the hash example test.
-    std::cerr << "[API][CryptoStackImpl] ERROR: GetMemoryAllocator not yet implemented\n";
+    score::mw::log::LogError() << "[API][CryptoStackImpl] ERROR: GetMemoryAllocator not yet implemented";
     return score::Result<IMemoryAllocator::Uptr>{
         score::unexpect, MakeError(CryptoErrorCode::kInternalError, "GetMemoryAllocator not yet implemented")};
 }

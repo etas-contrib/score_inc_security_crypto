@@ -234,7 +234,7 @@ class SlotRegistry : public std::enable_shared_from_this<SlotRegistry>
     std::unordered_map<uint32_t, std::unordered_map<std::string, std::string>> m_app_resource_map;
     mutable std::mutex m_mutex;  ///< Protects state changes
 
-    static constexpr std::string_view LOG_PREFIX = "[SLOT_REGISTRY] ";
+    static constexpr std::string_view LOG_PREFIX = "[SLOT_REGISTRY]";
 };
 
 }  // namespace score::crypto::daemon::key_management

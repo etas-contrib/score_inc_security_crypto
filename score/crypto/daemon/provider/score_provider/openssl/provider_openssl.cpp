@@ -14,8 +14,8 @@
 #include "score/crypto/daemon/key_management/slot/file_backed_slot_handler.hpp"
 #include "score/crypto/daemon/provider/score_provider/openssl/key_management/openssl_key_factory.hpp"
 #include "score/crypto/daemon/provider/score_provider/openssl/operations/factory/openssl_handler_factory.hpp"
+#include "score/mw/log/logging.h"
 #include <openssl/crypto.h>
-#include <iostream>
 
 namespace score::crypto::daemon::provider::score_provider::openssl
 {
@@ -41,11 +41,12 @@ bool OpenSSL::Initialize(const ProviderInitContext& ctx)
                                  OPENSSL_INIT_ADD_ALL_DIGESTS | OPENSSL_INIT_LOAD_CONFIG,
                              nullptr))
     {
-        std::cerr << "[OpenSSL] Error: Failed to initialize OpenSSL\n";
+        score::mw::log::LogError() << "[OpenSSL] Error: Failed to initialize OpenSSL";
         m_initialized = false;
         return false;
     }
-    std::cout << "[OpenSSL] Initialized successfully (ID: " << m_numeric_id << ", Name: " << m_provider_name << ")\n";
+    score::mw::log::LogDebug() << "[OpenSSL] Initialized successfully (ID:" << m_numeric_id
+                               << ", Name:" << m_provider_name << ")";
 
     // Create key factory.
     m_factory = std::make_shared<::score::crypto::daemon::provider::openssl::OpenSslKeyFactory>(m_numeric_id);

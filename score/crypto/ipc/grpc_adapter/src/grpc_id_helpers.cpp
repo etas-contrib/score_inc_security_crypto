@@ -13,7 +13,7 @@
 #include <unistd.h>
 #include <atomic>
 #include <cstdint>
-#include <iostream>
+
 #include <mutex>
 
 #include "score/crypto/daemon/control_plane/control_protocol.h"

@@ -11,8 +11,22 @@
 | `openssl/` | Component | Google Test | OpenSSL block-cipher operation tests |
 | `provider_test/` | Component | Google Test | Provider construction, PKCS#11 provider, multi-token isolation |
 | `softhsm/` | Integration | Google Test | SoftHSM-specific token and session tests |
+| `config/` | Config | — | Shared runtime configs (e.g. `logging.json` for `mw::log`) |
 | `test_vectors/` | Data | — | Known-answer test vectors (HMAC, AES, etc.) |
 | `utility/` | Component | Google Test | Shared test utilities and helpers |
+
+### Logging configuration
+
+`tests/config/logging.json` configures `score::mw::log` for local development. It enables
+verbose console output so all `LogDebug()` / `LogVerbose()` messages are visible.
+
+Set the env var before running the daemon or any test binary:
+
+```sh
+export MW_LOG_CONFIG_FILE=tests/config/logging.json
+```
+
+To suppress debug output, simply omit the env var (the library default is `kWarn`).
 
 ### Unit tests (Bazel)
 

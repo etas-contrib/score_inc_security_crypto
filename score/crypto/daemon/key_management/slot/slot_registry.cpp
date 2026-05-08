@@ -15,8 +15,8 @@
 #include "score/crypto/daemon/key_management/slot/access_policy_enforcer.hpp"
 #include "score/crypto/daemon/provider/provider_manager.hpp"
 
+#include "score/mw/log/logging.h"
 #include <algorithm>
-#include <iostream>
 
 namespace score::crypto::daemon::key_management
 {
@@ -28,7 +28,7 @@ SlotHandle SlotRegistry::RegisterSlot(KeySlotConfig config)
 
     if (m_name_index.find(name) != m_name_index.end())
     {
-        std::cerr << LOG_PREFIX << "Duplicate slot name ignored: '" << name << "'\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Duplicate slot name ignored: '" << name << "'";
         return SlotHandle{};
     }
 
@@ -85,8 +85,8 @@ void SlotRegistry::RegisterAppResource(uint32_t uid, const std::string& app_reso
     auto& uid_map = m_app_resource_map[uid];
     if (uid_map.find(app_resource_id) != uid_map.end())
     {
-        std::cerr << LOG_PREFIX << "Duplicate app resource mapping ignored: uid=" << uid << " resource='"
-                  << app_resource_id << "'\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Duplicate app resource mapping ignored: uid=" << uid
+                                   << " resource='" << app_resource_id << "'";
         return;
     }
     uid_map[app_resource_id] = slot_name;
@@ -132,8 +132,8 @@ void SlotRegistry::ResolveProviderIds(const provider::ProviderManager& provider_
             }
             else
             {
-                std::cerr << LOG_PREFIX << "Warning: provider '" << name << "' not found for slot '"
-                          << entry.config.slot_name << "'\n";
+                score::mw::log::LogError() << LOG_PREFIX << "Warning: provider '" << name << "' not found for slot '"
+                                           << entry.config.slot_name << "'";
             }
         }
     }

@@ -102,7 +102,7 @@ class OpenSslHmacHandler final
     std::vector<uint8_t> m_output_buffer;
     ::score::crypto::daemon::provider::handler::InitializationParams m_init_params;
 
-    static constexpr std::string_view LOG_PREFIX = "[OPENSSL_HMAC_HANDLER] ";
+    static constexpr std::string_view LOG_PREFIX = "[OPENSSL_HMAC_HANDLER]";
 };
 
 }  // namespace score::crypto::daemon::provider::score_provider::openssl::handler

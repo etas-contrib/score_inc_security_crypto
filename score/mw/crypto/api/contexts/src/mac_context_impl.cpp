@@ -24,10 +24,11 @@
 #include "score/result/result.h"
 #include "score/span.hpp"
 
+#include "score/mw/log/logging.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
-#include <iostream>
+
 #include <memory>
 #include <optional>
 #include <utility>
@@ -55,7 +56,7 @@ MacContextImpl::~MacContextImpl()
 {
     if (!m_connection)
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Connection is not initialized during destruction\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Connection is not initialized during destruction";
         return;
     }
 
@@ -66,7 +67,8 @@ MacContextImpl::~MacContextImpl()
 
     if (!context_close_res.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build CTX_CLOSE request during destruction\n";
+        score::mw::log::LogError()
+            << "[API][MacContextImpl] ERROR: Failed to build CTX_CLOSE request during destruction";
         return;
     }
 
@@ -77,8 +79,8 @@ MacContextImpl::~MacContextImpl()
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: CTX_CLOSE response validation failed: " << validator.getError()
-                  << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: CTX_CLOSE response validation failed: "
+                                   << validator.getError();
         return;
     }
 }
@@ -92,7 +94,7 @@ score::Result<std::monostate> MacContextImpl::Update(score::cpp::span<const uint
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build MAC_UPDATE request\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_UPDATE request";
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_UPDATE request")};
     }
@@ -104,7 +106,7 @@ score::Result<std::monostate> MacContextImpl::Update(score::cpp::span<const uint
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_UPDATE daemon response invalid")};
     }
@@ -120,7 +122,7 @@ score::Result<std::size_t> MacContextImpl::Finalize(score::cpp::span<uint8_t> ou
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build MAC_FINAL request\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_FINAL request";
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_FINAL request")};
     }
@@ -132,7 +134,7 @@ score::Result<std::size_t> MacContextImpl::Finalize(score::cpp::span<uint8_t> ou
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::size_t>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINAL daemon response invalid")};
     }
@@ -140,7 +142,7 @@ score::Result<std::size_t> MacContextImpl::Finalize(score::cpp::span<uint8_t> ou
     auto mac_result = validator.getParameterAt<proto::DataBufferReturn>(0, 0);
     if (!mac_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: MAC_FINAL response has invalid parameter type\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: MAC_FINAL response has invalid parameter type";
         return score::Result<std::size_t>{
             score::unexpect,
             MakeError(CryptoErrorCode::kOperationFailed, "MAC_FINAL response has invalid parameter type")};
@@ -155,8 +157,8 @@ score::Result<std::size_t> MacContextImpl::Finalize(score::cpp::span<uint8_t> ou
     // at least a sub-set of operations / algorithms.
     if (bytes_to_copy < mac_data.size())
     {
-        std::cerr
-            << "[API][MacContextImpl] ERROR: Output buffer too small for full MAC tag, truncated copy performed\n";
+        score::mw::log::LogError()
+            << "[API][MacContextImpl] ERROR: Output buffer too small for full MAC tag, truncated copy performed";
         return score::Result<std::size_t>{
             score::unexpect,
             MakeError(CryptoErrorCode::kInsufficientBufferSize,
@@ -175,7 +177,7 @@ score::Result<bool> MacContextImpl::Verify(score::cpp::span<const uint8_t> mac)
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build MAC_VERIFY request\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_VERIFY request";
         return score::Result<bool>{score::unexpect,
                                    MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_VERIFY request")};
     }
@@ -187,7 +189,7 @@ score::Result<bool> MacContextImpl::Verify(score::cpp::span<const uint8_t> mac)
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<bool>{score::unexpect,
                                    MakeError(CryptoErrorCode::kOperationFailed, "MAC_VERIFY daemon response invalid")};
     }
@@ -195,7 +197,7 @@ score::Result<bool> MacContextImpl::Verify(score::cpp::span<const uint8_t> mac)
     auto verify_result = validator.getParameterAt<bool>(0, 0);
     if (!verify_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: MAC_VERIFY response has invalid parameter type\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: MAC_VERIFY response has invalid parameter type";
         return score::Result<bool>{
             score::unexpect,
             MakeError(CryptoErrorCode::kOperationFailed, "MAC_VERIFY response has invalid parameter type")};
@@ -212,7 +214,7 @@ score::Result<std::monostate> MacContextImpl::Reset()
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build MAC_RESET request\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_RESET request";
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_RESET request")};
     }
@@ -224,7 +226,7 @@ score::Result<std::monostate> MacContextImpl::Reset()
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_RESET daemon response invalid")};
     }
@@ -245,7 +247,7 @@ std::size_t MacContextImpl::GetOutputSize() const noexcept
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build MAC_GET_SIZE request\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_GET_SIZE request";
         return 0;
     }
 
@@ -256,14 +258,14 @@ std::size_t MacContextImpl::GetOutputSize() const noexcept
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return 0;
     }
 
     auto size_result = validator.getParameterAt<std::uint64_t>(0, 0);
     if (!size_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: MAC_GET_SIZE response has invalid parameter type\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: MAC_GET_SIZE response has invalid parameter type";
         return 0;
     }
 
@@ -284,7 +286,7 @@ score::Result<std::monostate> MacContextImpl::Init(std::optional<score::cpp::spa
                                   .build();
     if (!control_req_result.has_value())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: Failed to build MAC_INIT request\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR: Failed to build MAC_INIT request";
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "Failed to build MAC_INIT request")};
     }
@@ -296,7 +298,7 @@ score::Result<std::monostate> MacContextImpl::Init(std::optional<score::cpp::spa
 
     if (!validator.isValid())
     {
-        std::cerr << "[API][MacContextImpl] ERROR: " << validator.getError() << "\n";
+        score::mw::log::LogError() << "[API][MacContextImpl] ERROR:" << validator.getError();
         return score::Result<std::monostate>{
             score::unexpect, MakeError(CryptoErrorCode::kOperationFailed, "MAC_INIT daemon response invalid")};
     }
