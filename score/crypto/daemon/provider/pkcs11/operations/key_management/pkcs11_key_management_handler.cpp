@@ -14,7 +14,7 @@
 
 #include "score/crypto/daemon/provider/pkcs11/pkcs11_provider.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::provider::pkcs11
 {
@@ -48,7 +48,7 @@ Pkcs11KeyManagementHandler::Execute(const common::OperationIdentifier& operation
 {
     if (!m_executor)
     {
-        std::cerr << LOG_PREFIX << "Execute: executor not injected\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Execute: executor not injected";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidArgument);
     }
     return m_executor->Execute(m_ctx, operationId, request);

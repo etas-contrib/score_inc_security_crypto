@@ -69,7 +69,7 @@ class Pkcs11KeySlotHandler final : public key_management::IKeySlotHandler
     std::weak_ptr<Pkcs11Module> m_module;
     std::shared_ptr<Pkcs11KeyStore> m_key_store;
 
-    static constexpr std::string_view LOG_PREFIX = "[PKCS11_KEY_SLOT_HANDLER] ";
+    static constexpr std::string_view LOG_PREFIX = "[PKCS11_KEY_SLOT_HANDLER]";
 };
 
 }  // namespace score::crypto::daemon::provider::pkcs11

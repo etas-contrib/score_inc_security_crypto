@@ -195,7 +195,7 @@ class DataManager : public IDataManager
     const std::size_t m_max_nodes_per_client = 1000;
 
     /// @brief Log prefix prepended to all diagnostic messages emitted by this class.
-    static constexpr std::string_view LOG_PREFIX = "[DATA_MANAGER] ";
+    static constexpr std::string_view LOG_PREFIX = "[DATA_MANAGER]";
 };
 
 }  // namespace score::crypto::daemon::data_manager

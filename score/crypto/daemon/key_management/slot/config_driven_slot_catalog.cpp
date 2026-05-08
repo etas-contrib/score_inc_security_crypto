@@ -15,7 +15,7 @@
 #include "score/crypto/daemon/key_management/interfaces/key_slot_config.hpp"
 #include "score/crypto/daemon/key_management/slot/slot_registry.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
 
 namespace score::crypto::daemon::key_management
 {
@@ -115,12 +115,12 @@ void ConfigDrivenSlotCatalog::Load(SlotRegistry& registry)
 
         registry.RegisterSlot(std::move(config));
 
-        std::cout << LOG_PREFIX << "Registered slot '" << entry.slot_name
-                  << "' (primary_provider=" << (entry.provider_names.empty() ? "<none>" : entry.provider_names[0])
-                  << ", algorithm=" << entry.algorithm << ")\n";
+        score::mw::log::LogDebug() << LOG_PREFIX << "Registered slot '" << entry.slot_name << "' (primary_provider="
+                                   << (entry.provider_names.empty() ? "<none>" : entry.provider_names[0])
+                                   << ", algorithm=" << entry.algorithm << ")";
     }
 
-    std::cout << LOG_PREFIX << "Loaded " << entries.size() << " slot(s) from configuration.\n";
+    score::mw::log::LogDebug() << LOG_PREFIX << "Loaded" << entries.size() << " slot(s) from configuration.";
 
     // Register per-application resource ID mappings.
     for (const auto& mapping : m_key_config.GetAppResourceEntries())

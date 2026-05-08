@@ -10,7 +10,8 @@
 //  of a patent, utility model or design.
 // =============================================================================
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <memory>
 #include <string_view>
 
@@ -44,7 +45,7 @@ ConnectionImpl::~ConnectionImpl()
 
     if (!requestRes.has_value())
     {
-        std::cerr << "[IPC][ConnectionImpl] ERROR: Failed to build CONNECTION_CLOSE request\n";
+        score::mw::log::LogError() << "[IPC][ConnectionImpl] ERROR: Failed to build CONNECTION_CLOSE request";
         return;
     }
 
@@ -55,8 +56,8 @@ ConnectionImpl::~ConnectionImpl()
 
     if (!validator.isValid())
     {
-        std::cerr << "[IPC][ConnectionImpl] ERROR: CONNECTION_CLOSE response validation failed: "
-                  << validator.getError() << "\n";
+        score::mw::log::LogError() << "[IPC][ConnectionImpl] ERROR: CONNECTION_CLOSE response validation failed: "
+                                   << validator.getError();
         return;
     }
 }

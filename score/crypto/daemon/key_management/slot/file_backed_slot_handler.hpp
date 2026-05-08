@@ -79,7 +79,7 @@ class FileBackedSlotHandler final : public IKeySlotHandler
     /// Maximum key file size to guard against reading unreasonably large files.
     static constexpr std::size_t kMaxKeyFileSize = 8U * 1024U;
 
-    static constexpr std::string_view LOG_PREFIX = "[FILE_BACKED_SLOT_HANDLER] ";
+    static constexpr std::string_view LOG_PREFIX = "[FILE_BACKED_SLOT_HANDLER]";
 };
 
 }  // namespace score::crypto::daemon::key_management

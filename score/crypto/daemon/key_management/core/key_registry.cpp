@@ -14,8 +14,9 @@
 
 #include "score/crypto/daemon/key_management/core/key_entry.hpp"
 
+#include "score/mw/log/logging.h"
 #include <algorithm>
-#include <iostream>
+
 #include <string_view>
 
 namespace score::crypto::daemon::key_management
@@ -37,7 +38,8 @@ KeyRegistryId KeyRegistry::RegisterSlotKey(SlotHandle slot_handle, std::shared_p
     // against concurrent races.
     if (m_slot_to_id.count(slot_handle.index) != 0U)
     {
-        std::cerr << LOG_PREFIX << "RegisterSlotKey: slot " << slot_handle.index << " already registered\n";
+        score::mw::log::LogError() << LOG_PREFIX << "RegisterSlotKey: slot" << slot_handle.index
+                                   << " already registered";
         return 0U;
     }
 
@@ -167,8 +169,8 @@ void KeyRegistry::CleanupClient(data_manager::ClientId client_id)
             }
         }
 
-        std::cout << LOG_PREFIX << "CleanupClient: removing key " << id << " (ref_count reached 0 after client "
-                  << client_id << " cleanup)\n";
+        score::mw::log::LogDebug() << LOG_PREFIX << "CleanupClient: removing key" << id
+                                   << " (ref_count reached 0 after client" << client_id << " cleanup)";
         m_keys.erase(id);
     }
 }

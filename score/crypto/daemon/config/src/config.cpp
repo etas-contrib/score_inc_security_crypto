@@ -13,9 +13,10 @@
 #include "score/crypto/daemon/config/inc/config.hpp"
 #include "score/crypto/daemon/config/src/flatbuffer_config_parser.hpp"
 
+#include "score/mw/log/logging.h"
 #include <cstdlib>
 #include <filesystem>
-#include <iostream>
+
 #include <map>
 #include <string>
 #include <vector>
@@ -87,14 +88,15 @@ bool Config::ParseConfig()
     {
         if (!std::filesystem::exists(config_file_path))
         {
-            std::cerr << "[CONFIG] Configuration file does not exist: " << config_file_path << "\n";
+            score::mw::log::LogError() << "[CONFIG] Configuration file does not exist:" << config_file_path;
             return false;
         }
-        std::cout << "[CONFIG] Parsing configuration from: " << config_file_path << "\n";
+        score::mw::log::LogDebug() << "[CONFIG] Parsing configuration from:" << config_file_path;
         auto result = FlatBufferConfigParser::ParseFromFile(config_file_path, m_key);
         if (!result.has_value())
         {
-            std::cerr << "[CONFIG] Failed to parse FlatBuffers configuration file: " << config_file_path << "\n";
+            score::mw::log::LogError() << "[CONFIG] Failed to parse FlatBuffers configuration file: "
+                                       << config_file_path;
             return false;
         }
         return true;
@@ -105,21 +107,21 @@ bool Config::ParseConfig()
     {
         if (std::filesystem::exists(path))
         {
-            std::cout << "[CONFIG] Found configuration at default path: " << path << "\n";
+            score::mw::log::LogDebug() << "[CONFIG] Found configuration at default path:" << path;
             auto result = FlatBufferConfigParser::ParseFromFile(path, m_key);
             if (!result.has_value())
             {
-                std::cerr << "[CONFIG] Failed to parse configuration from: " << path << "\n";
+                score::mw::log::LogError() << "[CONFIG] Failed to parse configuration from:" << path;
                 return false;
             }
             return true;
         }
     }
 
-    std::cerr << "[CONFIG] ERROR: No configuration file found in default paths:\n";
+    score::mw::log::LogError() << "[CONFIG] ERROR: No configuration file found in default paths:";
     for (const auto& path : DEFAULT_CONFIG_PATHS)
     {
-        std::cerr << "  - " << path << "\n";
+        score::mw::log::LogError() << "  -" << path;
     }
     return false;
 }

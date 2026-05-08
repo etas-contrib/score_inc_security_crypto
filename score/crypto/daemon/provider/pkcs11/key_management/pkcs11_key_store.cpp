@@ -14,7 +14,8 @@
 
 #include "score/crypto/daemon/provider/pkcs11/pkcs11_provider.hpp"
 
-#include <iostream>
+#include "score/mw/log/logging.h"
+
 #include <vector>
 
 namespace score::crypto::daemon::provider::pkcs11
@@ -163,8 +164,8 @@ Pkcs11KeyStore::ResolvedKey Pkcs11KeyStore::ResolveObject(uint64_t opaque_id,
     const CK_RV rv_init = fns->C_FindObjectsInit(handler_session, attrs_storage, attr_count);
     if (rv_init != CKR_OK)
     {
-        std::cerr << LOG_PREFIX << "ResolveObject: C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(rv_init)
-                  << '\n';
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveObject: C_FindObjectsInit failed: rv="
+                                   << static_cast<unsigned long>(rv_init);
         return {};
     }
 
@@ -175,7 +176,7 @@ Pkcs11KeyStore::ResolvedKey Pkcs11KeyStore::ResolveObject(uint64_t opaque_id,
 
     if ((rv_find != CKR_OK) || (count == 0U) || (found == CK_INVALID_HANDLE))
     {
-        std::cerr << LOG_PREFIX << "ResolveObject: token object not found on handler session\n";
+        score::mw::log::LogError() << LOG_PREFIX << "ResolveObject: token object not found on handler session";
         return {};
     }
 
@@ -207,7 +208,7 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
     const auto it = m_keys.find(opaque_id);
     if (it == m_keys.end())
     {
-        std::cerr << LOG_PREFIX << "Release: opaque_id=" << opaque_id << " not found\n";
+        score::mw::log::LogError() << LOG_PREFIX << "Release: opaque_id=" << opaque_id << " not found";
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidResourceId);
     }
 
@@ -227,7 +228,8 @@ score::crypto::Expected<std::monostate, score::crypto::daemon::common::DaemonErr
                 const CK_RV rv = fns->C_DestroyObject(sk.session, sk.object);
                 if (rv != CKR_OK)
                 {
-                    std::cerr << LOG_PREFIX << "C_DestroyObject failed: rv=" << static_cast<unsigned long>(rv) << '\n';
+                    score::mw::log::LogError()
+                        << LOG_PREFIX << "C_DestroyObject failed: rv=" << static_cast<unsigned long>(rv);
                 }
             }
         }

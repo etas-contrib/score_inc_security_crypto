@@ -19,7 +19,6 @@
 #include "score/crypto/daemon/provider/score_provider/operations/hash/hash_executor.hpp"
 #include "score/crypto/daemon/provider/score_provider/operations/mac/mac_executor.hpp"
 #include "score/result/result.h"
-#include <iostream>
 
 namespace score::crypto::daemon::provider::score_provider::openssl::handler
 {

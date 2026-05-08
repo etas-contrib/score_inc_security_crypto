@@ -15,8 +15,9 @@
 #include "score/crypto/common/types.hpp"
 
 #include "score/crypto/daemon/common/daemon_error.hpp"
+#include "score/mw/log/logging.h"
 #include <cstring>
-#include <iostream>
+
 #include <mutex>
 #include <string_view>
 
@@ -315,7 +316,8 @@ score::crypto::daemon::common::DaemonErrorCode Pkcs11Module::MapErrorReturn(cons
     switch (rv)
     {
         case CKR_OK:
-            std::cerr << "[PKCS11_MODULE] ERROR: Trying to map a success code to an error. This should not happen\n";
+            score::mw::log::LogError()
+                << "[PKCS11_MODULE] ERROR: Trying to map a success code to an error. This should not happen";
             return score::crypto::daemon::common::DaemonErrorCode::kOperationFailed;
 
         // Session / state errors

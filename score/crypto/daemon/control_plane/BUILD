@@ -30,6 +30,7 @@ cc_library(
     visibility = ["//:__subpackages__"],
     deps = [
         "//score/crypto/daemon/data_manager",
+        "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
     ],
 )
@@ -57,6 +58,7 @@ cc_library(
         "//score/crypto/daemon/data_manager",
         "//score/crypto/daemon/mediator",
         "//score/crypto/daemon/provider:provider_manager",
+        "@score_baselibs//score/mw/log",
         "@score_baselibs//score/result",
     ],
 )

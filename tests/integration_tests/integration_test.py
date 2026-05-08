@@ -239,6 +239,9 @@ class TestCryptoDaemon:
                 Path("tests/test_vectors/config/integration_softhsm_hmac.kv"): Path(
                     "/opt/crypto/deploy/integration_softhsm_hmac.kv"
                 ),
+                Path("tests/config/logging.json"): Path(
+                    "/opt/crypto/config/logging.json"
+                ),
             },
         )
 
@@ -272,6 +275,7 @@ class TestCryptoDaemon:
             env={
                 "SOFTHSM2_CONF": self.SOFTHSM_CONF_PATH,
                 "CRYPTO_CONFIG_FILE": self.CRYPTO_CONFIG_PATH,
+                "MW_LOG_CONFIG_FILE": "/opt/crypto/config/logging.json",
             },
         )
         assert daemon.start(), "Failed to start crypto_daemon"
