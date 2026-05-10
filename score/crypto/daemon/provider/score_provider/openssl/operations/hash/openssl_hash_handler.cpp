@@ -123,8 +123,8 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::InitHash(
 {
     std::ostringstream tid;
     tid << std::this_thread::get_id();
-    score::mw::log::LogDebug() << "DEBUG: InitHash called with algorithm:" << m_algorithm
-                               << ", thread ID:" << tid.str() << ", this:" << reinterpret_cast<uintptr_t>(this);
+    score::mw::log::LogDebug() << "DEBUG: InitHash called with algorithm:" << m_algorithm << ", thread ID:" << tid.str()
+                               << ", this:" << reinterpret_cast<uintptr_t>(this);
     const EVP_MD* md = GetEVPMD(m_algorithm);
     if (md == nullptr)
     {

@@ -255,7 +255,13 @@ Expected<std::monostate, DaemonErrorCode> MacExecutor::ValidateStreamTransition(
     {
         return make_unexpected(DaemonErrorCode::kInvalidOperation);
     }
-    return handler::handler_utils::ValidateStreamOperationSequence(currentState, op, nextState);
+    const auto result = handler::handler_utils::ValidateStreamOperationSequence(currentState, op);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    nextState = result.value();
+    return std::monostate{};
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::operations::mac

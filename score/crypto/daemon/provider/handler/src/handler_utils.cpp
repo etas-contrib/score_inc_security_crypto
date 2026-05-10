@@ -76,41 +76,30 @@ ExtractOutputBufferData(common::RequestParameter& userData, uint8_t*& buffer, si
     return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidDataType);
 }
 
-Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> ValidateStreamOperationSequence(
+Expected<common::StreamOperationState, score::crypto::daemon::common::DaemonErrorCode> ValidateStreamOperationSequence(
     common::StreamOperationState currentState,
-    StreamOperation streamOperation,
-    common::StreamOperationState& nextState) noexcept
+    StreamOperation streamOperation) noexcept
 {
     switch (streamOperation)
     {
         case StreamOperation::kInit:
             // Init is allowed from any state; transitions to STREAM_INITIALIZED
-            nextState = common::StreamOperationState::STREAM_INITIALIZED;
-            return std::monostate{};
+            return common::StreamOperationState::STREAM_INITIALIZED;
 
         case StreamOperation::kUpdate:
-            if (currentState == common::StreamOperationState::STREAM_INITIALIZED)
+            if (currentState == common::StreamOperationState::STREAM_INITIALIZED ||
+                currentState == common::StreamOperationState::STREAM_ACTIVE)
             {
-                nextState = common::StreamOperationState::STREAM_ACTIVE;
-                return std::monostate{};
+                return common::StreamOperationState::STREAM_ACTIVE;
             }
-            else if (currentState == common::StreamOperationState::STREAM_ACTIVE)
-            {
-                nextState = common::StreamOperationState::STREAM_ACTIVE;
-                return std::monostate{};
-            }
-            else
-            {
-                return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidStreamOperation);
-            }
+            return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidStreamOperation);
 
         case StreamOperation::kFinalize:
             if (currentState != common::StreamOperationState::STREAM_ACTIVE)
             {
                 return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidStreamOperation);
             }
-            nextState = common::StreamOperationState::IDLE;
-            return std::monostate{};
+            return common::StreamOperationState::IDLE;
     }
 
     // Unreachable with a well-formed enum; satisfies compilers that warn on missing return
