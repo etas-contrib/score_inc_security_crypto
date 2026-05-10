@@ -273,7 +273,13 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> Pkcs11M
     {
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidOperation);
     }
-    return handler::handler_utils::ValidateStreamOperationSequence(currentState, op, nextState);
+    const auto result = handler::handler_utils::ValidateStreamOperationSequence(currentState, op);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    nextState = result.value();
+    return std::monostate{};
 }
 
 // ---------------------------------------------------------------------------

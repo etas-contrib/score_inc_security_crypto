@@ -79,7 +79,6 @@ ExtractOutputBufferData(common::RequestParameter& userData, uint8_t*& buffer, si
 /// @brief Type-safe identifiers for streaming operation phases.
 ///
 /// Used by ValidateStreamOperationSequence to enforce the stream state machine
-/// without relying on string comparisons.
 enum class StreamOperation : std::uint8_t
 {
     kInit = 0,      ///< Initialize or restart the streaming operation
@@ -88,7 +87,7 @@ enum class StreamOperation : std::uint8_t
 };
 
 /**
- * @brief Validate and determine next state for streaming operations
+ * @brief Validate a streaming operation and return the resulting next state.
  *
  * Enforces the stream state machine:
  * - IDLE --(kInit)--> STREAM_INITIALIZED
@@ -100,16 +99,13 @@ enum class StreamOperation : std::uint8_t
  *
  * @param currentState The current operation state (IDLE, STREAM_INITIALIZED, or STREAM_ACTIVE)
  * @param streamOperation The streaming operation being requested
- * @param nextState Output parameter that receives the next state on success
- * @return Expected containing std::monostate on success, or DaemonErrorCode on failure
+ * @return Expected containing the next StreamOperationState on success, or DaemonErrorCode on failure
  *
- * @retval std::monostate Transition valid; nextState contains the new state
+ * @retval StreamOperationState Transition valid; value is the resulting state
  * @retval kInvalidStreamOperation UPDATE/FINALIZE attempted from invalid state
  */
-[[nodiscard]] Expected<std::monostate, ::score::crypto::daemon::common::DaemonErrorCode>
-ValidateStreamOperationSequence(common::StreamOperationState currentState,
-                                StreamOperation streamOperation,
-                                common::StreamOperationState& nextState) noexcept;
+[[nodiscard]] Expected<common::StreamOperationState, ::score::crypto::daemon::common::DaemonErrorCode>
+ValidateStreamOperationSequence(common::StreamOperationState currentState, StreamOperation streamOperation) noexcept;
 
 }  // namespace handler_utils
 
