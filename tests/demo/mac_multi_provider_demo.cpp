@@ -30,7 +30,7 @@
 ///     `FileBackedSlotHandler::LoadKey()`, compute HMAC, and verify that the
 ///     result matches when re-computed with the same key.
 ///
-/// 4.  **Verification**: Both paths demonstrate MAC_UPDATE → MAC_FINAL →
+/// 4.  **Verification**: Both paths demonstrate MAC_UPDATE → MAC_FINALIZE →
 ///     VerifyMac(), exercising the full `OpenSslHmacHandler` dispatch table.
 ///     The ProviderManager test shows the same direct virtual method
 ///     pattern used by the daemon.
@@ -138,7 +138,7 @@ class MacDemoTest : public ::testing::Test
     /// @brief Create a fresh `OpenSslHmacHandler` optionally bound to a key.
     ///
     /// When @p key_handler is non-null it is provided via InitializationParams
-    /// so the handler transitions directly to STREAM_INIT state (ready to compute MAC).
+    /// so the handler transitions directly to STREAM_INITIALIZED state (ready to compute MAC).
     std::shared_ptr<OpenSslHmacHandler> MakeMacHandler(const km::IKeyHandler* key_handler = nullptr)
     {
         auto executor = std::make_unique<MacExecutor>();
@@ -211,8 +211,8 @@ TEST_F(MacDemoTest, Demo2_EphemeralKeyMac)
     std::cout << "[PASS] MAC handler bound to ephemeral key via InitializeContext\n";
 
     // 2b.5. Initialize the MAC context with the bound key.
-    auto init_result = mac->StartMac(std::nullopt);
-    ASSERT_TRUE(init_result.has_value()) << "StartMac failed";
+    auto init_result = mac->InitMac(std::nullopt);
+    ASSERT_TRUE(init_result.has_value()) << "InitMac failed";
 
     // 2c. Compute MAC over the test message.
     const auto* msg = reinterpret_cast<const uint8_t*>(kTestMessage);
@@ -280,8 +280,8 @@ TEST_F(MacDemoTest, Demo3_SlotDirectFileBackedKey)
     auto mac = MakeMacHandler(key_handler.get());
 
     // Initialize the MAC context with the bound key.
-    auto init_result = mac->StartMac(std::nullopt);
-    ASSERT_TRUE(init_result.has_value()) << "StartMac failed";
+    auto init_result = mac->InitMac(std::nullopt);
+    ASSERT_TRUE(init_result.has_value()) << "InitMac failed";
 
     const auto* msg = reinterpret_cast<const uint8_t*>(kTestMessage);
     const std::size_t msg_len = std::strlen(kTestMessage);

@@ -95,7 +95,7 @@ Expected<ResponseParameters, DaemonErrorCode> MacExecutor::Execute(ScoreMacHandl
         return make_unexpected(result.error());
     }
 
-    if (operationId.operationAction == handler::mac_handler_operations::MAC_FINAL)
+    if (operationId.operationAction == handler::mac_handler_operations::MAC_FINALIZE)
     {
         auto result = ExecuteFinalize(handler, request);
         if (result.has_value())
@@ -130,7 +130,7 @@ Expected<std::monostate, DaemonErrorCode> MacExecutor::ExecuteInit(ScoreMacHandl
     {
         initialData.emplace(request[0]);
     }
-    return handler.StartMac(initialData);
+    return handler.InitMac(initialData);
 }
 
 Expected<std::monostate, DaemonErrorCode> MacExecutor::ExecuteUpdate(ScoreMacHandler& handler,
@@ -200,7 +200,7 @@ Expected<ResponseParameters, DaemonErrorCode> MacExecutor::ExecuteSingleShot(Sco
         }
     }
 
-    auto init = handler.StartMac(std::nullopt);
+    auto init = handler.InitMac(std::nullopt);
     if (!init.has_value())
     {
         return make_unexpected(init.error());
@@ -238,24 +238,30 @@ Expected<std::monostate, DaemonErrorCode> MacExecutor::ValidateStreamTransition(
                                                                                 const StreamOperationState currentState,
                                                                                 StreamOperationState& nextState)
 {
-    std::string_view opId;
+    handler::handler_utils::StreamOperation op{};
     if (action == handler::mac_handler_operations::MAC_INIT)
     {
-        opId = "START";
+        op = handler::handler_utils::StreamOperation::kInit;
     }
     else if (action == handler::mac_handler_operations::MAC_UPDATE)
     {
-        opId = "UPDATE";
+        op = handler::handler_utils::StreamOperation::kUpdate;
     }
-    else if (action == handler::mac_handler_operations::MAC_FINAL)
+    else if (action == handler::mac_handler_operations::MAC_FINALIZE)
     {
-        opId = "FINISH";
+        op = handler::handler_utils::StreamOperation::kFinalize;
     }
     else
     {
         return make_unexpected(DaemonErrorCode::kInvalidOperation);
     }
-    return handler::handler_utils::ValidateStreamOperationSequence(currentState, opId, nextState);
+    const auto result = handler::handler_utils::ValidateStreamOperationSequence(currentState, op);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    nextState = result.value();
+    return std::monostate{};
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::operations::mac

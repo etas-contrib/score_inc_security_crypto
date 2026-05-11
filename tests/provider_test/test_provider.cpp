@@ -228,9 +228,9 @@ TEST_F(ProviderHashTest, PerformSHA256StreamingHashOperation)
     finalize_op = {outputBuf};
 
     opId.operationActor = common::actors::OP_ACTOR_HASH_HANDLER;
-    opId.operationAction = provider::handler::hash_handler_operations::HASH_FINISH;
+    opId.operationAction = provider::handler::hash_handler_operations::HASH_FINALIZE;
     auto finalize_result = handler->Execute(opId, finalize_op);
-    ASSERT_TRUE(finalize_result.has_value()) << "HASH_FINISH failed";
+    ASSERT_TRUE(finalize_result.has_value()) << "HASH_FINALIZE failed";
 
     // Verify output is consistent with single-shot
     const auto expected_hash = tests::utility::read_bin("tests/test_vectors/hash/sha256_hello_world.bin");

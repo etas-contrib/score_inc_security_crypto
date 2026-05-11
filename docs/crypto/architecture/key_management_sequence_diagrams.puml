@@ -232,10 +232,10 @@ Med -> Med : build InitializationParams{\n  client_id, context_node_id,\n  provi
 Med -> Mac : InitializeContext(init_params)
 activate Mac
 Mac -> Mac : validate algorithm (HMAC-SHA256 ✓)
-Mac -> Mac : HMAC_CTX_new()
-Mac -> Mac : downcast bound_key_handler\n→ OpenSslKeyHandler\n(type-safe: check ProviderId == "openssl")
+Mac -> Mac : EVP_MAC_fetch(NULL, "HMAC", NULL) → m_mac\nEVP_MAC_CTX_new(m_mac) → m_ctx
+Mac -> Mac : downcast bound_key_handler\n→ OpenSslKeyHandler\n(type-safe: check ProviderId == 0)
 Mac -> Mac : GetRawKeyBytes(key_len)\n→ key_bytes pointer
-Mac -> Mac : store key bytes reference\n(valid while KeyDataNode alive)
+Mac -> Mac : store init_params for lazy EVP_MAC_init\n(called at MAC_INIT / first use)
 Mac --> Med : Expected<monostate> OK
 deactivate Mac
 
@@ -261,9 +261,9 @@ Med -> Med : ForwardSingleOperation()\n→ getNodeAccessor(context_node_id)\n→
 Med -> Mac : Execute(MAC_UPDATE, params)
 activate Mac
 Mac -> Exec : Execute(handler=*this, MAC_UPDATE, params)
-note right : ValidateStreamTransition:\nIDLE → STREAM_INIT on first MAC_UPDATE
+note right : ValidateStreamTransition:\nIDLE → STREAM_INITIALIZED on first MAC_UPDATE
 Exec -> Mac : UpdateMac(data_ptr, data_len)
-Mac -> Mac : HMAC_Update(m_ctx, data, len)
+Mac -> Mac : EVP_MAC_update(m_ctx, data, len)
 Mac --> Exec : OK
 Exec --> Mac : ResponseParameters{}
 Mac --> Med : ResponseParameters{}
@@ -271,14 +271,14 @@ deactivate Mac
 Med --> Client : response(OK)
 deactivate Med
 
-Client -> Med : HandleSingleOperation\n(OP_ACTOR_MAC, MAC_FINAL)\nparam[context_id], param[output_buf]
+Client -> Med : HandleSingleOperation\n(OP_ACTOR_MAC, MAC_FINALIZE)\nparam[context_id], param[output_buf]
 activate Med
-Med -> Mac : Execute(MAC_FINAL, params)
+Med -> Mac : Execute(MAC_FINALIZE, params)
 activate Mac
-Mac -> Exec : Execute(handler=*this, MAC_FINAL, params)
-note right : ValidateStreamTransition:\nSTREAM_INIT/ACTIVE → IDLE
+Mac -> Exec : Execute(handler=*this, MAC_FINALIZE, params)
+note right : ValidateStreamTransition:\nSTREAM_INITIALIZED/ACTIVE → IDLE
 Exec -> Mac : FinalizeMac(output_buf)
-Mac -> Mac : HMAC_Final(m_ctx, output, &len)
+Mac -> Mac : EVP_MAC_final(m_ctx, output, &hmac_len, buf_len)
 Mac -> Mac : write MAC bytes to VirtualMemoryBuffer
 Mac --> Exec : ResponseParameters{mac_bytes}
 Exec --> Mac : ResponseParameters

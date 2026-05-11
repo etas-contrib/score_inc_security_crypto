@@ -60,7 +60,7 @@ class OpenSslHmacHandler final
     // MacHandler interface
     // -----------------------------------------------------------------------
 
-    [[nodiscard]] ::score::crypto::Expected<std::monostate, ::score::crypto::daemon::common::DaemonErrorCode> StartMac(
+    [[nodiscard]] ::score::crypto::Expected<std::monostate, ::score::crypto::daemon::common::DaemonErrorCode> InitMac(
         const std::optional<common::RequestParameter> initialDataOrIV) override;
 
     [[nodiscard]] ::score::crypto::Expected<std::monostate, ::score::crypto::daemon::common::DaemonErrorCode> UpdateMac(

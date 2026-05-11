@@ -54,7 +54,7 @@ class Pkcs11HashExecutor final
     // TODO: Consider reducing the number of parameters
     /// @brief Dispatch the operation to the corresponding C_Digest* call.
     /// @param ctx             Stable per-context parameters (session, mechanism, digest_size).
-    /// @param operationAction The operation action (e.g., HASH_INIT, HASH_UPDATE, HASH_FINISH, HASH_SS).
+    /// @param operationAction The operation action (e.g., HASH_INIT, HASH_UPDATE, HASH_FINALIZE, HASH_SS).
     /// @param request         RequestParameters with parameters.
     /// @param currentState    Current streaming state (read/write).
     /// @param nextState       Output: next streaming state on success.

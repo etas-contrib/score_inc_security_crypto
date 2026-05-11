@@ -118,13 +118,13 @@ Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::Reset()
     return {};
 }
 
-Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::StartHash(
+Expected<std::monostate, DaemonErrorCode> OpenSslHashHandler::InitHash(
     const std::optional<common::RequestParameter> initialDataOrIV)
 {
     std::ostringstream tid;
     tid << std::this_thread::get_id();
-    score::mw::log::LogDebug() << "DEBUG: StartHash called with algorithm:" << m_algorithm
-                               << ", thread ID:" << tid.str() << ", this:" << reinterpret_cast<uintptr_t>(this);
+    score::mw::log::LogDebug() << "DEBUG: InitHash called with algorithm:" << m_algorithm << ", thread ID:" << tid.str()
+                               << ", this:" << reinterpret_cast<uintptr_t>(this);
     const EVP_MD* md = GetEVPMD(m_algorithm);
     if (md == nullptr)
     {

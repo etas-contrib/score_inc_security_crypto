@@ -56,7 +56,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
 
     if (operationAction == ops::MAC_SS)
     {
-        if (currentState != StreamOperationState::STREAM_INIT)
+        if (currentState != StreamOperationState::STREAM_INITIALIZED)
         {
             return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kOperationInProgress);
         }
@@ -72,7 +72,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     {
         return HandleUpdate(ctx, use_verify, currentState, nextState, request);
     }
-    if (operationAction == ops::MAC_FINAL)
+    if (operationAction == ops::MAC_FINALIZE)
     {
         return HandleFinal(ctx, currentState, nextState, request);
     }
@@ -95,7 +95,7 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> Pkcs11M
     bool use_verify,
     StreamOperationState currentState) noexcept
 {
-    if (currentState != StreamOperationState::STREAM_INIT)
+    if (currentState != StreamOperationState::STREAM_INITIALIZED)
     {
         return std::monostate{};  // already initialised via MAC_INIT
     }
@@ -158,14 +158,14 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     StreamOperationState& nextState,
     RequestParameters& request) noexcept
 {
-    // MAC_FINAL produces tag bytes — only valid on the sign (kGenerate) path.
+    // MAC_FINALIZE produces tag bytes — only valid on the sign (kGenerate) path.
     // The verify path (kVerify) has no equivalent; use MAC_VERIFY instead.
     if (ctx.operation_mode == score::mw::crypto::OperationMode::kVerify)
     {
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidOperation);
     }
     const auto validation =
-        ValidateStreamTransition(handler::mac_handler_operations::MAC_FINAL, currentState, nextState);
+        ValidateStreamTransition(handler::mac_handler_operations::MAC_FINALIZE, currentState, nextState);
     if (!validation.has_value())
     {
         return make_unexpected(validation.error());
@@ -214,7 +214,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     }
 
     // C_Sign* path: compute tag via C_SignFinal then constant-time compare.
-    const bool need_init = (currentState == StreamOperationState::STREAM_INIT);
+    const bool need_init = (currentState == StreamOperationState::STREAM_INITIALIZED);
     return ExecuteSignVerify(ctx.session, ctx.mechanism, ctx.key_object, ctx.mac_size, need_init, request);
 }
 
@@ -260,20 +260,26 @@ Expected<std::monostate, score::crypto::daemon::common::DaemonErrorCode> Pkcs11M
     StreamOperationState& nextState) noexcept
 {
     namespace ops = handler::mac_handler_operations;
-    std::string_view opId;
+    handler::handler_utils::StreamOperation op{};
     if (action == ops::MAC_UPDATE)
     {
-        opId = "UPDATE";
+        op = handler::handler_utils::StreamOperation::kUpdate;
     }
-    else if (action == ops::MAC_FINAL)
+    else if (action == ops::MAC_FINALIZE)
     {
-        opId = "FINISH";
+        op = handler::handler_utils::StreamOperation::kFinalize;
     }
     else
     {
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInvalidOperation);
     }
-    return handler::handler_utils::ValidateStreamOperationSequence(currentState, opId, nextState);
+    const auto result = handler::handler_utils::ValidateStreamOperationSequence(currentState, op);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    nextState = result.value();
+    return std::monostate{};
 }
 
 // ---------------------------------------------------------------------------
@@ -452,7 +458,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     // MAC_VERIFY always carries exactly one parameter: the expected tag.
     // The data to authenticate has already been submitted via MAC_UPDATE
     // (C_SignUpdate) calls when need_init is false (STREAM_ACTIVE).
-    // When need_init is true (STREAM_INIT, i.e. MAC_INIT was skipped),
+    // When need_init is true (STREAM_INITIALIZED, i.e. MAC_INIT was skipped),
     // this executes a verify of the empty message.
     if (request.empty())
     {
@@ -474,7 +480,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
 
     if (need_init)
     {
-        // Direct path (STREAM_INIT): C_SignInit was never called (MAC_INIT was skipped).
+        // Direct path (STREAM_INITIALIZED): C_SignInit was never called (MAC_INIT was skipped).
         // Initialise the sign context now; no data precedes this verify.
         auto init_res = ExecuteSignInit(session, mechanism, key_object);
         if (!init_res.has_value())

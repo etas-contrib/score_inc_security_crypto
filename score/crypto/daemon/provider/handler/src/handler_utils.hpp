@@ -18,7 +18,6 @@
 #include "score/crypto/daemon/common/types.hpp"
 #include <cstddef>
 #include <cstdint>
-#include <string_view>
 #include <variant>
 
 namespace score
@@ -77,36 +76,36 @@ ExtractBufferData(const common::RequestParameter& userData, const uint8_t*& buff
 [[nodiscard]] Expected<std::monostate, ::score::crypto::daemon::common::DaemonErrorCode>
 ExtractOutputBufferData(common::RequestParameter& userData, uint8_t*& buffer, size_t& size) noexcept;
 
+/// @brief Type-safe identifiers for streaming operation phases.
+///
+/// Used by ValidateStreamOperationSequence to enforce the stream state machine
+enum class StreamOperation : std::uint8_t
+{
+    kInit = 0,      ///< Initialize or restart the streaming operation
+    kUpdate = 1,    ///< Feed data into the active stream
+    kFinalize = 2,  ///< Finalize the stream and produce output
+};
+
 /**
- * @brief Validate and determine next state for streaming operations
+ * @brief Validate a streaming operation and return the resulting next state.
  *
  * Enforces the stream state machine:
- * - IDLE --(START)--> STREAM_INIT
- * - STREAM_INIT --(START)--> STREAM_INIT (restart)
- * - STREAM_INIT --(UPDATE 1+)--> STREAM_ACTIVE
- * - STREAM_ACTIVE --(UPDATE)--> STREAM_ACTIVE
- * - STREAM_ACTIVE --(START)--> STREAM_INIT (restart)
- * - STREAM_ACTIVE --(FINISH)--> IDLE
+ * - IDLE --(kInit)--> STREAM_INITIALIZED
+ * - STREAM_INITIALIZED --(kInit)--> STREAM_INITIALIZED (restart)
+ * - STREAM_INITIALIZED --(kUpdate)--> STREAM_ACTIVE
+ * - STREAM_ACTIVE --(kUpdate)--> STREAM_ACTIVE
+ * - STREAM_ACTIVE --(kInit)--> STREAM_INITIALIZED (restart)
+ * - STREAM_ACTIVE --(kFinalize)--> IDLE
  *
- * This function focuses only on streaming operation validation (START, UPDATE, FINISH) and
- * decouples from single-shot operation IDs for handler-specific implementation.
+ * @param currentState The current operation state (IDLE, STREAM_INITIALIZED, or STREAM_ACTIVE)
+ * @param streamOperation The streaming operation being requested
+ * @return Expected containing the next StreamOperationState on success, or DaemonErrorCode on failure
  *
- * @param currentState The current operation state (IDLE, STREAM_INIT, or STREAM_ACTIVE)
- * @param streamOperation The streaming operation being requested: "START", "UPDATE", or "FINISH"
- * @param nextState Output parameter that receives the next state on SUCCESS
- * @return Expected containing std::monostate on success, or the failing score::crypto::daemon::common::DaemonErrorCode
- *
- * @retval std::monostate Transition valid; nextState contains the new state
- * @retval make_unexpected(ERROR_INVALID_STREAM_OPERATION) UPDATE/FINISH from wrong state
- * @retval make_unexpected(ERROR_INVALID_PARAMETER) Unknown or non-streaming operation
- *
- * @note Single-shot operations are NOT validated here (handler-specific)
- * @note Valid streaming operations: "START", "UPDATE", "FINISH"
+ * @retval StreamOperationState Transition valid; value is the resulting state
+ * @retval kInvalidStreamOperation UPDATE/FINALIZE attempted from invalid state
  */
-[[nodiscard]] Expected<std::monostate, ::score::crypto::daemon::common::DaemonErrorCode>
-ValidateStreamOperationSequence(common::StreamOperationState currentState,
-                                std::string_view streamOperation,
-                                common::StreamOperationState& nextState) noexcept;
+[[nodiscard]] Expected<common::StreamOperationState, ::score::crypto::daemon::common::DaemonErrorCode>
+ValidateStreamOperationSequence(common::StreamOperationState currentState, StreamOperation streamOperation) noexcept;
 
 }  // namespace handler_utils
 

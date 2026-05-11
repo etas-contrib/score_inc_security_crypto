@@ -62,9 +62,9 @@ Expected<ResponseParameters, DaemonErrorCode> HashExecutor::Execute(ScoreHashHan
         return make_unexpected(sequenceValidation.error());
     }
 
-    if (operationId.operationAction == handler::hash_handler_operations::HASH_FINISH)
+    if (operationId.operationAction == handler::hash_handler_operations::HASH_FINALIZE)
     {
-        auto result = ExecuteFinish(handler, request);
+        auto result = ExecuteFinalize(handler, request);
         if (result.has_value())
         {
             handler.SetOperationState(nextState);
@@ -75,7 +75,7 @@ Expected<ResponseParameters, DaemonErrorCode> HashExecutor::Execute(ScoreHashHan
     const auto result = [&]() -> Expected<std::monostate, DaemonErrorCode> {
         if (operationId.operationAction == handler::hash_handler_operations::HASH_INIT)
         {
-            return ExecuteStart(handler, request);
+            return ExecuteInit(handler, request);
         }
         if (operationId.operationAction == handler::hash_handler_operations::HASH_UPDATE)
         {
@@ -96,8 +96,8 @@ Expected<ResponseParameters, DaemonErrorCode> HashExecutor::Execute(ScoreHashHan
     return ResponseParameters{};
 }
 
-Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteStart(ScoreHashHandler& handler,
-                                                                     RequestParameters& request)
+Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteInit(ScoreHashHandler& handler,
+                                                                    RequestParameters& request)
 {
     std::optional<common::VirtualMemoryBufferConst> initialDataOrIV;
     if (!request.empty())
@@ -107,7 +107,7 @@ Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteStart(ScoreHashHa
             initialDataOrIV.emplace(*buf);
         }
     }
-    return handler.StartHash(initialDataOrIV);
+    return handler.InitHash(initialDataOrIV);
 }
 
 Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteUpdate(ScoreHashHandler& handler,
@@ -127,8 +127,8 @@ Expected<std::monostate, DaemonErrorCode> HashExecutor::ExecuteUpdate(ScoreHashH
     return handler.UpdateHash(*buf);
 }
 
-Expected<ResponseParameters, DaemonErrorCode> HashExecutor::ExecuteFinish(ScoreHashHandler& handler,
-                                                                          RequestParameters& request)
+Expected<ResponseParameters, DaemonErrorCode> HashExecutor::ExecuteFinalize(ScoreHashHandler& handler,
+                                                                            RequestParameters& request)
 {
     std::optional<common::VirtualMemoryBuffer> output;
     if (!request.empty())
@@ -204,24 +204,30 @@ Expected<std::monostate, DaemonErrorCode> HashExecutor::ValidateStreamTransition
     const StreamOperationState currentState,
     StreamOperationState& nextState)
 {
-    std::string_view opId;
+    handler::handler_utils::StreamOperation op{};
     if (action == handler::hash_handler_operations::HASH_INIT)
     {
-        opId = "START";
+        op = handler::handler_utils::StreamOperation::kInit;
     }
     else if (action == handler::hash_handler_operations::HASH_UPDATE)
     {
-        opId = "UPDATE";
+        op = handler::handler_utils::StreamOperation::kUpdate;
     }
-    else if (action == handler::hash_handler_operations::HASH_FINISH)
+    else if (action == handler::hash_handler_operations::HASH_FINALIZE)
     {
-        opId = "FINISH";
+        op = handler::handler_utils::StreamOperation::kFinalize;
     }
     else
     {
         return make_unexpected(DaemonErrorCode::kInvalidOperation);
     }
-    return handler::handler_utils::ValidateStreamOperationSequence(currentState, opId, nextState);
+    const auto result = handler::handler_utils::ValidateStreamOperationSequence(currentState, op);
+    if (!result.has_value())
+    {
+        return make_unexpected(result.error());
+    }
+    nextState = result.value();
+    return std::monostate{};
 }
 
 }  // namespace score::crypto::daemon::provider::score_provider::operations::hash

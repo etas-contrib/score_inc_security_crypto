@@ -92,8 +92,8 @@ class ScoreMacHandler : public handler::Handler
     /// @brief Get the MAC tag size for the current algorithm.
     [[nodiscard]] virtual std::size_t GetMacSize() const noexcept;
 
-    /// @brief (Re-)initialize the MAC stream context with the cached key.
-    [[nodiscard]] virtual Expected<std::monostate, common::DaemonErrorCode> StartMac(
+    /// @brief Initialize the MAC stream context with the cached key.
+    [[nodiscard]] virtual Expected<std::monostate, common::DaemonErrorCode> InitMac(
         const std::optional<common::RequestParameter> initialDataOrIV);
 
     /// @brief Add data to the active MAC stream.
