@@ -14,11 +14,11 @@ repos:
   - repo: local
     hooks:
       # Enable when copyright is corrected to S-CORE
-      # - id: copyright-fix
-      #   name: //:copyright-fix
-      #   entry: bazel run //:copyright-fix
-      #   language: system
-      #   pass_filenames: false
+      - id: copyright-fix
+        name: //:copyright-fix
+        entry: bazel run //:copyright-fix
+        language: system
+        pass_filenames: false
       - id: format-fix
         name: //:format.fix
         entry: bazel run //:format.fix

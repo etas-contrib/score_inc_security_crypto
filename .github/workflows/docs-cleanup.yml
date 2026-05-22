@@ -11,12 +11,19 @@
 # SPDX-License-Identifier: Apache-2.0
 # *******************************************************************************
 
-[tool.basedpyright]
-extends = "bazel-bin/ide_support.runfiles/score_tooling+/python_basics/pyproject.toml"
-verboseOutput = true
+name: Documentation Cleanup
 
-exclude = [
-    "**/__pycache__",
-    "**/.*",
-    "**/bazel-*",
-]
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every day at midnight UTC
+
+jobs:
+  docs-cleanup:
+    uses: eclipse-score/cicd-workflows/.github/workflows/docs-cleanup.yml@829b3e11ccbf924a5782f7bfed647cb1619fdf78 # v0.0.1
+    secrets:
+      token: ${{ secrets.GITHUB_TOKEN }}
