@@ -27,5 +27,6 @@ jobs:
     # TODO: For now, our clang-tidy execution is not clean
     # Skip pre-commit checks, reactivate after fixing all clang-tidy issues
     # Hint: If this reactivated and does also cover formatting checks, remove the separate workflow
+    # Hint: Also activate sync again in .github/templatesyncignore.txt
     # - name: ✅ Run pre-commit
     #   run: pre-commit run --all-files
