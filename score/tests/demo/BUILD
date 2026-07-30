@@ -26,5 +26,6 @@ cc_test(
         "//score/crypto/src/daemon/provider/score_provider/operations/mac:score_mac_handler",
         "//third_party/openssl",
         "@googletest//:gtest_main",
+        "@score_baselibs//score/mw/log",
     ],
 )

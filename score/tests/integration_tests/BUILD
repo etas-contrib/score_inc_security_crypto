@@ -15,17 +15,6 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 load("@score_itf//:defs.bzl", "py_itf_test")
 
 cc_binary(
-    name = "control_client_app",
-    srcs = ["control_client_app.cpp"],
-    dynamic_deps = ["//third_party/grpc:libgrpc_shared"],
-    deps = [
-        "//score/crypto/src/api:operations",
-        "//score/crypto/src/api/control_plane:control_plane_impl",
-        "@googletest//:gtest",
-    ],
-)
-
-cc_binary(
     name = "init_softhsm_token",
     srcs = ["init_softhsm_token.cpp"],
     deps = [
@@ -45,6 +34,7 @@ cc_binary(
         "//score/crypto/src/api:crypto_stack",
         "//score/tests/utility",
         "@googletest//:gtest",
+        "@score_baselibs//score/mw/log",
     ],
 )
 
@@ -60,6 +50,20 @@ cc_binary(
         "//score/crypto/src/api:crypto_stack",
         "//score/tests/utility",
         "@googletest//:gtest",
+        "@score_baselibs//score/mw/log",
+    ],
+)
+
+cc_binary(
+    name = "hash_performance_test",
+    srcs = ["hash_performance_test.cpp"],
+    data = ["//score/tests/test_vectors/hash:hash_test_vectors"],
+    dynamic_deps = ["//third_party/grpc:libgrpc_shared"],
+    deps = [
+        "//score/crypto/src/api:crypto_stack",
+        "//score/tests/utility",
+        "@googletest//:gtest",
+        "@score_baselibs//score/mw/log",
     ],
 )
 
@@ -74,6 +78,7 @@ cc_binary(
     deps = [
         "//score/crypto/src/api:crypto_stack",
         "//score/tests/utility",
+        "@score_baselibs//score/mw/log",
     ],
 )
 
@@ -86,7 +91,7 @@ py_itf_test(
         "--log-level=WARNING",
     ],
     data = [
-        ":control_client_app",
+        ":hash_performance_test",
         ":init_softhsm_token",
         ":score_api_hash_example",
         ":score_api_mac_example",
