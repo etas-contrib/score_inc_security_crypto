@@ -188,5 +188,5 @@ This repository supports multiple interchangeable cryptographic backends:
 *   **Valeo Cryptoki (Rust Backend)**: S-CORE's high-security Rust-based PKCS#11 provider. For complete compilation, running, and troubleshooting manuals, please refer directly to the [Valeo Cryptoki Integration Guide](score/cryptoki/README.md).
 
 ## Use of genAI in this repository
-The repository partially contains AI-generated code by using GitHub Copilot Business.
+The repository partially contains AI-generated code by using AI coding assistants.
 This notice needs to remain attached to any reproduction of this repository.
