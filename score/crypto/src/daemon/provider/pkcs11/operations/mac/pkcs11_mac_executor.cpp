@@ -212,7 +212,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
 
     // C_Sign* path: compute tag via C_SignFinal then constant-time compare.
     const bool need_init = (currentState == StreamOperationState::STREAM_INITIALIZED);
-    return ExecuteSignVerify(ctx.session, ctx.mechanism, ctx.key_object, ctx.mac_size, need_init, request);
+    return ExecuteSignVerify(ctx, need_init, request);
 }
 
 // ---------------------------------------------------------------------------
@@ -414,10 +414,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
 }
 
 Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkcs11MacExecutor::ExecuteSignVerify(
-    CK_SESSION_HANDLE session,
-    CK_MECHANISM& mechanism,
-    CK_OBJECT_HANDLE key_object,
-    std::size_t mac_size,
+    Pkcs11MacExecutionContext& ctx,
     bool need_init,
     RequestParameters& request) noexcept
 {
@@ -437,7 +434,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
         return make_unexpected(tagSpan.error());
     }
 
-    if (tagSpan.value().size() != mac_size)
+    if (tagSpan.value().size() != ctx.mac_size)
     {
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInsufficientBufferSize);
     }
@@ -446,7 +443,7 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     {
         // Direct path (STREAM_INITIALIZED): C_SignInit was never called (MAC_INIT was skipped).
         // Initialise the sign context now; no data precedes this verify.
-        auto init_res = ExecuteSignInit(session, mechanism, key_object);
+        auto init_res = ExecuteSignInit(ctx.session, ctx.mechanism, ctx.key_object);
         if (!init_res.has_value())
         {
             return make_unexpected(init_res.error());
@@ -457,9 +454,9 @@ Expected<ResponseParameters, score::crypto::daemon::common::DaemonErrorCode> Pkc
     // and compare the computed tag against the expected one using constant-time.
     // This path is only reached when operation_mode == kGenerate (use_verify == false),
     // so the key is guaranteed to have CKA_SIGN=true; C_SignFinal will not fail on that basis.
-    std::vector<uint8_t> computed(mac_size, 0U);
-    CK_ULONG sig_len = static_cast<CK_ULONG>(mac_size);
-    const CK_RV rv = m_functionList->C_SignFinal(session, computed.data(), &sig_len);
+    std::vector<uint8_t> computed(ctx.mac_size, 0U);
+    CK_ULONG sig_len = static_cast<CK_ULONG>(ctx.mac_size);
+    const CK_RV rv = m_functionList->C_SignFinal(ctx.session, computed.data(), &sig_len);
     if (rv != CKR_OK)
     {
         return make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kAlgorithmExecutionFailed);

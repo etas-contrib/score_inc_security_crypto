@@ -237,57 +237,42 @@ daemon::common::ResponseParameters GrpcControlClient::Impl::ExtractResponseParam
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueBool*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(bool{fb_val->val()});
-                }
+                parameters.emplace_back(bool{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint8:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint8*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint8_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint8_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint16:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint16*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint16_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint16_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint32:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint32*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint32_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint32_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint64:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint64*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint64_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint64_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_String:
             {
                 const auto* fb_string =
                     static_cast<const score::crypto::ipc::control::String*>(static_cast<const void*>(fb_param));
-                if (fb_string && fb_string->val())
+                if (fb_string->val())
                 {
                     parameters.emplace_back(daemon::control_plane::protocol::OwnedString(fb_string->val()->c_str()));
                 }
@@ -297,7 +282,7 @@ daemon::common::ResponseParameters GrpcControlClient::Impl::ExtractResponseParam
             {
                 const auto* fb_buffer = static_cast<const score::crypto::ipc::control::DataBufferInBand*>(
                     static_cast<const void*>(fb_param));
-                if (fb_buffer && fb_buffer->val())
+                if (fb_buffer->val())
                 {
                     // Copy FlatBuffer byte vector into a std::vector (must own - FB goes out of scope)
                     const auto* fb_data = fb_buffer->val();

@@ -29,6 +29,52 @@
 namespace score::crypto::daemon::provider::pkcs11
 {
 
+namespace
+{
+
+CK_OBJECT_CLASS ParseObjectClass(std::string_view object_class)
+{
+    if (object_class == "private_key")
+    {
+        return CKO_PRIVATE_KEY;
+    }
+    if (object_class == "public_key")
+    {
+        return CKO_PUBLIC_KEY;
+    }
+    return CKO_SECRET_KEY;
+}
+
+score::crypto::Expected<CK_OBJECT_HANDLE, score::crypto::daemon::common::DaemonErrorCode> FindSlotObject(
+    CK_FUNCTION_LIST* functions,
+    CK_SESSION_HANDLE session,
+    std::vector<CK_ATTRIBUTE>& search_template,
+    std::string_view slot_name,
+    std::string_view log_prefix)
+{
+    CK_RV result = functions->C_FindObjectsInit(session, search_template.data(),
+                                                static_cast<CK_ULONG>(search_template.size()));
+    if (result != CKR_OK)
+    {
+        score::mw::log::LogError() << log_prefix << "C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(result);
+        return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
+    }
+
+    CK_OBJECT_HANDLE found_object = CK_INVALID_HANDLE;
+    CK_ULONG found_count = 0U;
+    result = functions->C_FindObjects(session, &found_object, 1U, &found_count);
+    static_cast<void>(functions->C_FindObjectsFinal(session));
+
+    if (result != CKR_OK || found_count == 0U || found_object == CK_INVALID_HANDLE)
+    {
+        score::mw::log::LogError() << log_prefix << "C_FindObjects: object not found for slot '" << slot_name << "'";
+        return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
+    }
+    return found_object;
+}
+
+}  // namespace
+
 // =============================================================================
 // Pkcs11KeySlotHandler
 // =============================================================================
@@ -84,16 +130,7 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
     CK_OBJECT_CLASS obj_class = CKO_SECRET_KEY;
     if (class_it != key_props.end())
     {
-        const auto& cls_str = class_it->second;
-        if (cls_str == "private_key")
-        {
-            obj_class = CKO_PRIVATE_KEY;
-        }
-        else if (cls_str == "public_key")
-        {
-            obj_class = CKO_PUBLIC_KEY;
-        }
-        // else: default secret_key
+        obj_class = ParseObjectClass(class_it->second);
     }
 
     // Build the search template.
@@ -145,31 +182,17 @@ Pkcs11KeySlotHandler::LoadKey(const key_management::KeySlotConfig& slot)
         return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kInternalError);
     }
 
-    CK_RV rv = fns->C_FindObjectsInit(session, tmpl.data(), static_cast<CK_ULONG>(tmpl.size()));
-    if (rv != CKR_OK)
+    const auto found_object = FindSlotObject(fns, session, tmpl, slot.slot_name, LOG_PREFIX);
+    if (!found_object.has_value())
     {
-        score::mw::log::LogError() << LOG_PREFIX << "C_FindObjectsInit failed: rv=" << static_cast<unsigned long>(rv);
         m_provider->ReleaseSession(session, reqs);
-        return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
-    }
-
-    CK_OBJECT_HANDLE found_object = CK_INVALID_HANDLE;
-    CK_ULONG found_count = 0U;
-    rv = fns->C_FindObjects(session, &found_object, 1U, &found_count);
-    static_cast<void>(fns->C_FindObjectsFinal(session));  // always finalise
-
-    if (rv != CKR_OK || found_count == 0U || found_object == CK_INVALID_HANDLE)
-    {
-        score::mw::log::LogError() << LOG_PREFIX << "C_FindObjects: object not found for slot '" << slot.slot_name
-                                   << "'";
-        m_provider->ReleaseSession(session, reqs);
-        return score::crypto::make_unexpected(score::crypto::daemon::common::DaemonErrorCode::kKeySlotEmpty);
+        return score::crypto::make_unexpected(found_object.error());
     }
 
     // Retrieve CKA_VALUE_LEN (key size in bytes).
     CK_ULONG value_len = 0U;
     CK_ATTRIBUTE value_len_attr{CKA_VALUE_LEN, &value_len, sizeof(value_len)};
-    rv = fns->C_GetAttributeValue(session, found_object, &value_len_attr, 1U);
+    const CK_RV rv = fns->C_GetAttributeValue(session, found_object.value(), &value_len_attr, 1U);
     // Some tokens don't support CKA_VALUE_LEN -- fall back to algorithm-derived size.
     if (rv != CKR_OK)
     {

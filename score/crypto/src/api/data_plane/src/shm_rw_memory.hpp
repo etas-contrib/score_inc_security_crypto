@@ -52,6 +52,13 @@ using DestroyRequestCallback =
 /// this memory object.
 class ShmReadWriteMemory final : public IReadWriteMemory
 {
+  struct RegionData
+  {
+    std::uint64_t node_id;
+    std::shared_ptr<void> handle;
+    score::cpp::span<uint8_t> region;
+  };
+
   public:
     /// @brief Helper tag type to allow std::make_unique to access the private constructor.
     struct MakeUniqueEnabler
@@ -80,9 +87,7 @@ class ShmReadWriteMemory final : public IReadWriteMemory
 
     /// @brief Tag-dispatching constructor used internally by Create().
     ShmReadWriteMemory(MakeUniqueEnabler,
-                       std::uint64_t node_id,
-                       std::shared_ptr<void> handle,
-                       score::cpp::span<uint8_t> region,
+                       RegionData region_data,
                        std::weak_ptr<IShmRegionRegistry> registry,
                        std::shared_ptr<score::crypto::api::control_plane::IConnection> connection,
                        DestroyRequestCallback destroy_callback);

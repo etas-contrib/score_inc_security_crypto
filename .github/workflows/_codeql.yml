@@ -1,0 +1,121 @@
+# *******************************************************************************
+# Copyright (c) 2026 Contributors to the Eclipse Foundation
+#
+# See the NOTICE file(s) distributed with this work for additional
+# information regarding copyright ownership.
+#
+# This program and the accompanying materials are made available under the
+# terms of the Apache License Version 2.0 which is available at
+# https://www.apache.org/licenses/LICENSE-2.0
+#
+# SPDX-License-Identifier: Apache-2.0
+# *******************************************************************************
+
+name: "CodeQL Analysis"
+
+on:
+  schedule:
+    - cron: '0 3 * * *'
+  workflow_dispatch:
+  workflow_call:
+    inputs:
+      fetch-only:
+        description: "When true, runs --nobuild to fetch dependencies only."
+        type: string
+        default: "false"
+      fail-on-findings:
+        description: "When true, fails if the SARIF contains findings without a suppression."
+        type: string
+        default: "false"
+
+jobs:
+  codeql-linux:
+    name: Run CodeQL analysis (Linux)
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      actions: write
+      security-events: write
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Bazel
+        uses: bazel-contrib/setup-bazel@0.19.1
+
+      - name: Fetch dependencies (--nobuild)
+        if: inputs.fetch-only == 'true'
+        run: bazel build --config=x86_64-linux --nobuild //...
+
+      - name: Initialize CodeQL
+        if: inputs.fetch-only != 'true'
+        uses: github/codeql-action/init@v4
+        with:
+          languages: c-cpp
+          build-mode: manual
+          queries: security-and-quality
+
+      - name: Build C and C++ targets for CodeQL
+        if: inputs.fetch-only != 'true'
+        run: |
+          set -euo pipefail
+
+          bazel_root="${RUNNER_TEMP}/codeql-bazel"
+          target_list="$(bazel --output_user_root="${bazel_root}" query 'kind("cc_library|cc_binary", //score/...)')"
+          test -n "${target_list}"
+          mapfile -t targets <<< "${target_list}"
+
+          action_env=()
+          while IFS= read -r name; do
+            case "${name}" in
+              CODEQL_*|LGTM_*|SEMMLE_*|ODASA_*|LD_PRELOAD)
+                action_env+=("--action_env=${name}")
+                ;;
+            esac
+          done < <(compgen -e)
+
+          bazel --output_user_root="${bazel_root}" build --config=x86_64-linux \
+            --spawn_strategy=local --disk_cache= --remote_cache= \
+            "${action_env[@]}" -- "${targets[@]}"
+
+      - name: Analyze CodeQL database
+        if: inputs.fetch-only != 'true'
+        id: analyze-codeql
+        uses: github/codeql-action/analyze@v4
+        with:
+          output: /tmp/codeql-results
+          upload: never
+
+      - name: Upload SARIF to GitHub Code Scanning
+        if: ${{ !cancelled() && steps.analyze-codeql.outcome == 'success' }}
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v4
+        with:
+          sarif_file: /tmp/codeql-results/cpp.sarif
+          category: codeql-nightly
+
+      - name: Upload SARIF results
+        if: ${{ !cancelled() && steps.analyze-codeql.outcome == 'success' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: codeql-sarif-results
+          path: /tmp/codeql-results/cpp.sarif
+          retention-days: 30
+
+      - name: Fail on unsuppressed findings
+        if: ${{ !cancelled() && inputs.fail-on-findings == 'true' && steps.analyze-codeql.outcome == 'success' }}
+        run: |
+          set -euo pipefail
+
+          # A finding counts as suppressed if it carries any SARIF suppression
+          # (e.g. in-source `// codeql[...]` comments).
+          jq -r '
+            [.runs[].results[]? | select((.suppressions // []) | length == 0)]
+            | .[]
+            | "\(.ruleId // "unknown-rule"): \(.message.text // "") (\(.locations[0].physicalLocation.artifactLocation.uri // "?"):\(.locations[0].physicalLocation.region.startLine // "?"))"
+          ' /tmp/codeql-results/cpp.sarif | tee /tmp/codeql-results/unsuppressed.txt
+
+          count=$(wc -l < /tmp/codeql-results/unsuppressed.txt)
+          if [ "${count}" -gt 0 ]; then
+            echo "::error::CodeQL reported ${count} finding(s) without a suppression."
+            exit 1
+          fi

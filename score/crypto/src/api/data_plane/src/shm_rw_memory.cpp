@@ -47,9 +47,7 @@ score::Result<IReadWriteMemory::Uptr> ShmReadWriteMemory::Create(
     }
 
     auto memory = std::make_unique<ShmReadWriteMemory>(MakeUniqueEnabler{},
-                                                       node_id,
-                                                       std::move(handle),
-                                                       region,
+                                                       RegionData{node_id, std::move(handle), region},
                                                        std::move(registry),
                                                        std::move(connection),
                                                        std::move(destroy_callback));
@@ -57,15 +55,13 @@ score::Result<IReadWriteMemory::Uptr> ShmReadWriteMemory::Create(
 }
 
 ShmReadWriteMemory::ShmReadWriteMemory(MakeUniqueEnabler enabler,
-                                       std::uint64_t node_id,
-                                       std::shared_ptr<void> handle,
-                                       score::cpp::span<uint8_t> region,
+                                       RegionData region_data,
                                        std::weak_ptr<IShmRegionRegistry> registry,
                                        std::shared_ptr<score::crypto::api::control_plane::IConnection> connection,
                                        DestroyRequestCallback destroy_callback)
-    : m_node_id(node_id),
-      m_handle(std::move(handle)),
-      m_span(region),
+        : m_node_id(region_data.node_id),
+            m_handle(std::move(region_data.handle)),
+            m_span(region_data.region),
       m_registry(std::move(registry)),
       m_connection(std::move(connection)),
       m_destroy_callback(std::move(destroy_callback))
@@ -73,7 +69,8 @@ ShmReadWriteMemory::ShmReadWriteMemory(MakeUniqueEnabler enabler,
     static_cast<void>(enabler);  // suppress unused parameter warning
     if (auto registry = m_registry.lock())
     {
-        registry->Register(RegionEntry{node_id, reinterpret_cast<std::uintptr_t>(m_span.data()), m_span.size(), false});
+        registry->Register(
+            RegionEntry{m_node_id, reinterpret_cast<std::uintptr_t>(m_span.data()), m_span.size(), false});
     }
 }
 

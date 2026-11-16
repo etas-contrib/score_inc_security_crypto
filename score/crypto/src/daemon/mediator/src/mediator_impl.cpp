@@ -69,6 +69,30 @@ bool IsContextParameterPresent(const control_plane::SingleOperationRequest& oper
            !std::holds_alternative<common::NoParam>(operation.parameters[parameter_index]);
 }
 
+std::optional<operations::ProviderTypePreference> ParseProviderPreference(
+    const control_plane::SingleOperationRequest& operation)
+{
+    if (!IsContextParameterPresent(operation, operations::CTX_PARAM_PROVIDER_TYPE))
+    {
+        return operations::ProviderTypePreference{common::CryptoProviderType::DEFAULT, std::nullopt};
+    }
+
+    const auto provider_type_res = operation.getParameter<std::uint8_t>(operations::CTX_PARAM_PROVIDER_TYPE);
+    if (!provider_type_res.has_value())
+    {
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Wrong parameter type for provider preference";
+        return std::nullopt;
+    }
+
+    const auto decoded_preference = operations::DecodeProviderTypePreference(provider_type_res.value());
+    if (!decoded_preference.has_value())
+    {
+        score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Unknown provider preference value: "
+                                   << static_cast<unsigned int>(provider_type_res.value());
+    }
+    return decoded_preference;
+}
+
 bool IsFallbackEligible(const score::crypto::CryptoErrorCode error) noexcept
 {
     return (error == score::crypto::CryptoErrorCode::kUnsupportedOperation) ||
@@ -484,28 +508,11 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
     }
     auto algorithm = algorithm_res.value();
 
-    operations::ProviderTypePreference provider_preference{common::CryptoProviderType::DEFAULT, std::nullopt};
-    if (IsContextParameterPresent(operation, operations::CTX_PARAM_PROVIDER_TYPE))
+    const auto provider_preference = ParseProviderPreference(operation);
+    if (!provider_preference.has_value())
     {
-        const auto provider_type_res = operation.getParameter<std::uint8_t>(operations::CTX_PARAM_PROVIDER_TYPE);
-        if (!provider_type_res.has_value())
-        {
-            score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Wrong parameter type for provider preference";
-            responseBuilder.operation(operation.operationId)
-                .return_error(score::crypto::CryptoErrorCode::kInvalidArgument);
-            return false;
-        }
-
-        const auto decoded_preference = operations::DecodeProviderTypePreference(provider_type_res.value());
-        if (!decoded_preference.has_value())
-        {
-            score::mw::log::LogError() << "[SCORE_API_MED] ERROR - Unknown provider preference value: "
-                                       << static_cast<unsigned int>(provider_type_res.value());
-            responseBuilder.operation(operation.operationId)
-                .return_error(score::crypto::CryptoErrorCode::kInvalidArgument);
-            return false;
-        }
-        provider_preference = decoded_preference.value();
+        responseBuilder.operation(operation.operationId).return_error(score::crypto::CryptoErrorCode::kInvalidArgument);
+        return false;
     }
 
     // Read optional key_node_id parameter (param[3]) — for binding a key at context creation
@@ -568,8 +575,8 @@ bool MediatorImpl::HandleContextCreationOperation(const score::crypto::daemon::c
         has_key_binding ? std::optional<data_manager::DataNodeId>{key_node_id} : std::nullopt,
         context_type,
         algorithm_descriptor,
-        provider_preference.primary,
-        provider_preference.fallback,
+        provider_preference->primary,
+        provider_preference->fallback,
         required_capability);
     if (!provider_handler.has_value())
     {

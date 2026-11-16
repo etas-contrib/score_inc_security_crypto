@@ -170,10 +170,7 @@ class Pkcs11MacExecutor final
     ///        CKA_VERIFY=true use ExecuteVerifyFinal() after a C_VerifyInit +
     ///        C_VerifyUpdate chain.  See TODO in pkcs11_mac_executor.cpp.
     [[nodiscard]] Expected<common::ResponseParameters, score::crypto::daemon::common::DaemonErrorCode>
-    ExecuteSignVerify(CK_SESSION_HANDLE session,
-                      CK_MECHANISM& mechanism,
-                      CK_OBJECT_HANDLE key_object,
-                      std::size_t mac_size,
+    ExecuteSignVerify(Pkcs11MacExecutionContext& ctx,
                       bool need_init,
                       common::RequestParameters& request) noexcept;
 

@@ -45,6 +45,28 @@ static_assert(static_cast<std::uint8_t>(score::crypto::ipc::control::ShmDirectio
 namespace score::crypto::ipc
 {
 
+namespace
+{
+
+void ExtractShmParameter(const control::DataShm& fb_shm, daemon::common::RequestParameters& parameters)
+{
+    const auto direction = fb_shm.direction();
+    if (direction != control::ShmDirection_In && direction != control::ShmDirection_InOut)
+    {
+        score::mw::log::LogError() << "[GrpcControlServiceAdapter] ERROR - Invalid SHM direction: "
+                                   << static_cast<int>(direction);
+        return;
+    }
+    daemon::common::DataShm shm{};
+    shm.node_id = fb_shm.node_id();
+    shm.offset = static_cast<std::size_t>(fb_shm.offset());
+    shm.size = static_cast<std::size_t>(fb_shm.size());
+    shm.direction = static_cast<daemon::common::ShmDirection>(direction);
+    parameters.emplace_back(std::move(shm));
+}
+
+}  // namespace
+
 // Thread-local handler storage (one per gRPC worker thread)
 thread_local std::unique_ptr<score::crypto::daemon::control_plane::IRequestHandler>
     GrpcControlServiceAdapter::_thread_handler = nullptr;
@@ -315,57 +337,42 @@ daemon::common::RequestParameters GrpcControlServiceAdapter::ExtractRequestParam
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueBool*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(bool{fb_val->val()});
-                }
+                parameters.emplace_back(bool{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint8:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint8*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint8_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint8_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint16:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint16*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint16_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint16_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint32:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint32*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint32_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint32_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_ValueUint64:
             {
                 const auto* fb_val =
                     static_cast<const score::crypto::ipc::control::ValueUint64*>(static_cast<const void*>(fb_param));
-                if (fb_val)
-                {
-                    parameters.emplace_back(std::uint64_t{fb_val->val()});
-                }
+                parameters.emplace_back(std::uint64_t{fb_val->val()});
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_String:
             {
                 const auto* fb_string =
                     static_cast<const score::crypto::ipc::control::String*>(static_cast<const void*>(fb_param));
-                if (fb_string && fb_string->val())
+                if (fb_string->val())
                 {
                     parameters.emplace_back(std::string_view{fb_string->val()->c_str(), fb_string->val()->size()});
                 }
@@ -375,7 +382,7 @@ daemon::common::RequestParameters GrpcControlServiceAdapter::ExtractRequestParam
             {
                 const auto* fb_buffer = static_cast<const score::crypto::ipc::control::DataBufferInBand*>(
                     static_cast<const void*>(fb_param));
-                if (fb_buffer && fb_buffer->val())
+                if (fb_buffer->val())
                 {
                     // Zero-copy: borrow from FlatBuffer memory (alive for RPC duration)
                     const auto* fb_data = fb_buffer->val();
@@ -387,23 +394,7 @@ daemon::common::RequestParameters GrpcControlServiceAdapter::ExtractRequestParam
             {
                 const auto* fb_shm =
                     static_cast<const score::crypto::ipc::control::DataShm*>(static_cast<const void*>(fb_param));
-                if (fb_shm)
-                {
-                    const auto dir = fb_shm->direction();
-                    if (dir != score::crypto::ipc::control::ShmDirection_In &&
-                        dir != score::crypto::ipc::control::ShmDirection_InOut)
-                    {
-                        score::mw::log::LogError()
-                            << "[GrpcControlServiceAdapter] ERROR - Invalid SHM direction: " << static_cast<int>(dir);
-                        break;
-                    }
-                    daemon::common::DataShm shm{};
-                    shm.node_id = fb_shm->node_id();
-                    shm.offset = static_cast<std::size_t>(fb_shm->offset());
-                    shm.size = static_cast<std::size_t>(fb_shm->size());
-                    shm.direction = static_cast<daemon::common::ShmDirection>(dir);
-                    parameters.emplace_back(std::move(shm));
-                }
+                ExtractShmParameter(*fb_shm, parameters);
                 break;
             }
             case score::crypto::ipc::control::OperationParameter_DataBufferDataPlane:

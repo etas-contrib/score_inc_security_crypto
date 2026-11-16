@@ -19,6 +19,7 @@
 #include "score/crypto/src/api/common/error_domain.hpp"
 
 #include <cstdint>
+#include <map>
 
 namespace score::crypto::daemon::common
 {
@@ -136,142 +137,83 @@ enum class DaemonErrorCode : std::uint32_t
 inline score::crypto::CryptoErrorCode ToCryptoErrorCode(DaemonErrorCode code) noexcept
 {
     using C = score::crypto::CryptoErrorCode;
-    switch (code)
-    {
+    static const std::map<DaemonErrorCode, C> mappings{
         // ---- General ----
-        case DaemonErrorCode::kUninitializedStack:
-            return C::kUninitializedStack;
-        case DaemonErrorCode::kAlreadyInitialized:
-            return C::kAlreadyInitialized;
-        case DaemonErrorCode::kConnectionFailed:
-            return C::kConnectionFailed;
-        case DaemonErrorCode::kInternalError:
-            return C::kInternalError;
+        {DaemonErrorCode::kUninitializedStack, C::kUninitializedStack},
+        {DaemonErrorCode::kAlreadyInitialized, C::kAlreadyInitialized},
+        {DaemonErrorCode::kConnectionFailed, C::kConnectionFailed},
+        {DaemonErrorCode::kInternalError, C::kInternalError},
         // ---- Operation ----
-        case DaemonErrorCode::kUnsupportedOperation:
-            return C::kUnsupportedOperation;
-        case DaemonErrorCode::kInvalidOperation:
-            return C::kInvalidOperation;
-        case DaemonErrorCode::kOperationFailed:
-            return C::kOperationFailed;
-        case DaemonErrorCode::kOperationTimedOut:
-            return C::kOperationTimedOut;
+        {DaemonErrorCode::kUnsupportedOperation, C::kUnsupportedOperation},
+        {DaemonErrorCode::kInvalidOperation, C::kInvalidOperation},
+        {DaemonErrorCode::kOperationFailed, C::kOperationFailed},
+        {DaemonErrorCode::kOperationTimedOut, C::kOperationTimedOut},
         // ---- Parameter ----
-        case DaemonErrorCode::kInvalidArgument:
-            return C::kInvalidArgument;
-        case DaemonErrorCode::kResourceNotFound:
-            return C::kResourceNotFound;
-        case DaemonErrorCode::kInvalidResourceId:
-            return C::kInvalidResourceId;
-        case DaemonErrorCode::kInvalidResourceType:
-            return C::kInvalidResourceType;
-        case DaemonErrorCode::kInsufficientBufferSize:
-            return C::kInsufficientBufferSize;
-        case DaemonErrorCode::kInvalidFormat:
-            return C::kInvalidFormat;
-        case DaemonErrorCode::kParamTruncated:
-            return C::kParamTruncated;
-        case DaemonErrorCode::kResponseTooLarge:
-            return C::kInsufficientBufferSize;
+        {DaemonErrorCode::kInvalidArgument, C::kInvalidArgument},
+        {DaemonErrorCode::kResourceNotFound, C::kResourceNotFound},
+        {DaemonErrorCode::kInvalidResourceId, C::kInvalidResourceId},
+        {DaemonErrorCode::kInvalidResourceType, C::kInvalidResourceType},
+        {DaemonErrorCode::kInsufficientBufferSize, C::kInsufficientBufferSize},
+        {DaemonErrorCode::kInvalidFormat, C::kInvalidFormat},
+        {DaemonErrorCode::kParamTruncated, C::kParamTruncated},
+        {DaemonErrorCode::kResponseTooLarge, C::kInsufficientBufferSize},
         // ---- Streaming ----
-        case DaemonErrorCode::kStreamNotInitialized:
-            return C::kStreamNotInitialized;
-        case DaemonErrorCode::kStreamAlreadyActive:
-            return C::kStreamAlreadyActive;
-        case DaemonErrorCode::kStreamIncomplete:
-            return C::kStreamIncomplete;
+        {DaemonErrorCode::kStreamNotInitialized, C::kStreamNotInitialized},
+        {DaemonErrorCode::kStreamAlreadyActive, C::kStreamAlreadyActive},
+        {DaemonErrorCode::kStreamIncomplete, C::kStreamIncomplete},
         // ---- Algorithm ----
-        case DaemonErrorCode::kUnsupportedAlgorithm:
-            return C::kUnsupportedAlgorithm;
-        case DaemonErrorCode::kAlgorithmMismatch:
-            return C::kAlgorithmMismatch;
+        {DaemonErrorCode::kUnsupportedAlgorithm, C::kUnsupportedAlgorithm},
+        {DaemonErrorCode::kAlgorithmMismatch, C::kAlgorithmMismatch},
         // ---- Memory / resource ----
-        case DaemonErrorCode::kAllocationFailed:
-            return C::kAllocationFailed;
-        case DaemonErrorCode::kQuotaExceeded:
-            return C::kQuotaExceeded;
-        case DaemonErrorCode::kInvalidMemoryRegion:
-            return C::kInvalidMemoryRegion;
+        {DaemonErrorCode::kAllocationFailed, C::kAllocationFailed},
+        {DaemonErrorCode::kQuotaExceeded, C::kQuotaExceeded},
+        {DaemonErrorCode::kInvalidMemoryRegion, C::kInvalidMemoryRegion},
         // ---- Context ----
-        case DaemonErrorCode::kContextCreationFailed:
-            return C::kContextCreationFailed;
-        case DaemonErrorCode::kContextAlreadyDestroyed:
-            return C::kContextAlreadyDestroyed;
-        case DaemonErrorCode::kContextResetFailed:
-            return C::kContextResetFailed;
-        case DaemonErrorCode::kSessionExpired:
-            return C::kSessionExpired;
+        {DaemonErrorCode::kContextCreationFailed, C::kContextCreationFailed},
+        {DaemonErrorCode::kContextAlreadyDestroyed, C::kContextAlreadyDestroyed},
+        {DaemonErrorCode::kContextResetFailed, C::kContextResetFailed},
+        {DaemonErrorCode::kSessionExpired, C::kSessionExpired},
         // ---- Key management ----
-        case DaemonErrorCode::kKeySlotEmpty:
-            return C::kKeySlotEmpty;
-        case DaemonErrorCode::kKeySlotOccupied:
-            return C::kKeySlotOccupied;
-        case DaemonErrorCode::kKeyNotExportable:
-            return C::kKeyNotExportable;
-        case DaemonErrorCode::kKeyGenerationFailed:
-            return C::kKeyGenerationFailed;
-        case DaemonErrorCode::kKeyDerivationFailed:
-            return C::kKeyDerivationFailed;
-        case DaemonErrorCode::kKeyAgreementFailed:
-            return C::kKeyAgreementFailed;
-        case DaemonErrorCode::kWrapUnwrapFailed:
-            return C::kWrapUnwrapFailed;
-        case DaemonErrorCode::kPersistFailed:
-            return C::kPersistFailed;
-        case DaemonErrorCode::kIncompatibleKeyType:
-            return C::kIncompatibleKeyType;
-        case DaemonErrorCode::kKeyOperationNotPermitted:
-            return C::kKeyOperationNotPermitted;
+        {DaemonErrorCode::kKeySlotEmpty, C::kKeySlotEmpty},
+        {DaemonErrorCode::kKeySlotOccupied, C::kKeySlotOccupied},
+        {DaemonErrorCode::kKeyNotExportable, C::kKeyNotExportable},
+        {DaemonErrorCode::kKeyGenerationFailed, C::kKeyGenerationFailed},
+        {DaemonErrorCode::kKeyDerivationFailed, C::kKeyDerivationFailed},
+        {DaemonErrorCode::kKeyAgreementFailed, C::kKeyAgreementFailed},
+        {DaemonErrorCode::kWrapUnwrapFailed, C::kWrapUnwrapFailed},
+        {DaemonErrorCode::kPersistFailed, C::kPersistFailed},
+        {DaemonErrorCode::kIncompatibleKeyType, C::kIncompatibleKeyType},
+        {DaemonErrorCode::kKeyOperationNotPermitted, C::kKeyOperationNotPermitted},
         // ---- Certificate ----
-        case DaemonErrorCode::kCertificateParsingFailed:
-            return C::kCertificateParsingFailed;
-        case DaemonErrorCode::kCsrGenerationFailed:
-            return C::kCsrGenerationFailed;
-        case DaemonErrorCode::kOcspError:
-            return C::kOcspError;
-        case DaemonErrorCode::kTrustStoreCapacityExceeded:
-            return C::kQuotaExceeded;
-        case DaemonErrorCode::kTrustStoreInvalid:
-            return C::kInvalidOperation;
+        {DaemonErrorCode::kCertificateParsingFailed, C::kCertificateParsingFailed},
+        {DaemonErrorCode::kCsrGenerationFailed, C::kCsrGenerationFailed},
+        {DaemonErrorCode::kOcspError, C::kOcspError},
+        {DaemonErrorCode::kTrustStoreCapacityExceeded, C::kQuotaExceeded},
+        {DaemonErrorCode::kTrustStoreInvalid, C::kInvalidOperation},
         // ---- Provider ----
-        case DaemonErrorCode::kProviderNotAvailable:
-            return C::kProviderNotAvailable;
-        case DaemonErrorCode::kProviderBusy:
-            return C::kProviderBusy;
-        case DaemonErrorCode::kCrossProviderIncompatible:
-            return C::kCrossProviderIncompatible;
+        {DaemonErrorCode::kProviderNotAvailable, C::kProviderNotAvailable},
+        {DaemonErrorCode::kProviderBusy, C::kProviderBusy},
+        {DaemonErrorCode::kCrossProviderIncompatible, C::kCrossProviderIncompatible},
         // ---- Access control ----
-        case DaemonErrorCode::kAccessDenied:
-            return C::kAccessDenied;
-        case DaemonErrorCode::kResourceNotAllocated:
-            return C::kResourceNotAllocated;
+        {DaemonErrorCode::kAccessDenied, C::kAccessDenied},
+        {DaemonErrorCode::kResourceNotAllocated, C::kResourceNotAllocated},
         // ---- Daemon-internal (translated to broader public codes) ----
-        case DaemonErrorCode::kInvalidState:
-            return C::kInvalidOperation;
-        case DaemonErrorCode::kOperationInProgress:
-            return C::kInvalidOperation;
-        case DaemonErrorCode::kInvalidContext:
-            return C::kInvalidOperation;
-        case DaemonErrorCode::kInsufficientParameters:
-            return C::kInvalidArgument;
-        case DaemonErrorCode::kInvalidDataType:
-            return C::kInvalidArgument;
-        case DaemonErrorCode::kInvalidStreamOperation:
-            return C::kInvalidOperation;
-        case DaemonErrorCode::kAlgorithmInitializationFailed:
-            return C::kOperationFailed;
-        case DaemonErrorCode::kAlgorithmExecutionFailed:
-            return C::kOperationFailed;
-        case DaemonErrorCode::kResourceBusy:
-            return C::kOperationFailed;
-        case DaemonErrorCode::kContextCleanupFailed:
-            return C::kOperationFailed;
-        case DaemonErrorCode::kSessionInvalid:
-            return C::kSessionExpired;
-        case DaemonErrorCode::kUnknown:
-            return C::kInternalError;
-    }
-    return C::kInternalError;
+        {DaemonErrorCode::kInvalidState, C::kInvalidOperation},
+        {DaemonErrorCode::kOperationInProgress, C::kInvalidOperation},
+        {DaemonErrorCode::kInvalidContext, C::kInvalidOperation},
+        {DaemonErrorCode::kInsufficientParameters, C::kInvalidArgument},
+        {DaemonErrorCode::kInvalidDataType, C::kInvalidArgument},
+        {DaemonErrorCode::kInvalidStreamOperation, C::kInvalidOperation},
+        {DaemonErrorCode::kAlgorithmInitializationFailed, C::kOperationFailed},
+        {DaemonErrorCode::kAlgorithmExecutionFailed, C::kOperationFailed},
+        {DaemonErrorCode::kResourceBusy, C::kOperationFailed},
+        {DaemonErrorCode::kContextCleanupFailed, C::kOperationFailed},
+        {DaemonErrorCode::kSessionInvalid, C::kSessionExpired},
+        {DaemonErrorCode::kUnknown, C::kInternalError},
+    };
+
+    const auto mapping = mappings.find(code);
+    return mapping != mappings.end() ? mapping->second : C::kInternalError;
 }
 
 }  // namespace score::crypto::daemon::common

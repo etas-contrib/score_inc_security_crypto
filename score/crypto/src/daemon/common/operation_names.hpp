@@ -85,11 +85,10 @@ constexpr std::string_view ActorName(OperationActor actor) noexcept
     }
 }
 
-/// @brief Returns the symbolic name for an OperationAction within the given actor's namespace.
-///
-/// The actor context is required because the same action integer has different meanings
-/// across actors (e.g., action=1 is CTX_CREATE for MEDIATOR but HASH_INIT for HASH_HANDLER).
-constexpr std::string_view ActionName(OperationActor actor, OperationAction action) noexcept
+namespace detail
+{
+
+constexpr std::string_view MediatorAndHashActionName(OperationActor actor, OperationAction action) noexcept
 {
     // Mediator action constants (mediator_operations.hpp cannot be included here without
     // pulling in control_protocol.h — the values are stable and documented there).
@@ -98,12 +97,6 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
     constexpr OperationAction kMediatorResolveResource = 3;
 
     namespace hash_ops = provider::handler::hash_handler_operations;
-    namespace mac_ops = provider::handler::mac_handler_operations;
-    namespace cipher_ops = provider::handler::cipher_handler_operations;
-    namespace sign_ops = provider::handler::sign_handler_operations;
-    namespace verify_ops = provider::handler::verify_handler_operations;
-    namespace random_ops = provider::handler::random_handler_operations;
-    namespace km_ops = key_management::operations;
 
     switch (actor)
     {
@@ -139,6 +132,18 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
                     return "<unknown_hash_op>";
             }
 
+        default:
+            return "<unknown_op>";
+    }
+}
+
+constexpr std::string_view MacAndCipherActionName(OperationActor actor, OperationAction action) noexcept
+{
+    namespace mac_ops = provider::handler::mac_handler_operations;
+    namespace cipher_ops = provider::handler::cipher_handler_operations;
+
+    switch (actor)
+    {
         case actors::OP_ACTOR_MAC_HANDLER:
             switch (action)
             {
@@ -181,6 +186,18 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
                     return "<unknown_cipher_op>";
             }
 
+        default:
+            return "<unknown_op>";
+    }
+}
+
+constexpr std::string_view SignAndVerifyActionName(OperationActor actor, OperationAction action) noexcept
+{
+    namespace sign_ops = provider::handler::sign_handler_operations;
+    namespace verify_ops = provider::handler::verify_handler_operations;
+
+    switch (actor)
+    {
         case actors::OP_ACTOR_SIGN_HANDLER:
             switch (action)
             {
@@ -219,62 +236,98 @@ constexpr std::string_view ActionName(OperationActor actor, OperationAction acti
                     return "<unknown_verify_op>";
             }
 
+        default:
+            return "<unknown_op>";
+    }
+}
+
+constexpr std::string_view RandomActionName(OperationAction action) noexcept
+{
+    namespace random_ops = provider::handler::random_handler_operations;
+
+    switch (action)
+    {
+        case random_ops::RANDOM_GENERATE:
+            return "RANDOM_GENERATE";
+        case random_ops::RANDOM_SEED:
+            return "RANDOM_SEED";
+        default:
+            return "<unknown_random_op>";
+    }
+}
+
+constexpr std::string_view KeyManagementActionName(OperationAction action) noexcept
+{
+    namespace km_ops = key_management::operations;
+
+    switch (action)
+    {
+        case km_ops::KEY_GENERATE:
+            return "KEY_GENERATE";
+        case km_ops::KEY_GENERATE_TO_SLOT:
+            return "KEY_GENERATE_TO_SLOT";
+        case km_ops::KEY_PERSIST:
+            return "KEY_PERSIST";
+        case km_ops::KEY_DERIVE:
+            return "KEY_DERIVE";
+        case km_ops::KEY_DERIVE_TO_SLOT:
+            return "KEY_DERIVE_TO_SLOT";
+        case km_ops::KEY_AGREE:
+            return "KEY_AGREE";
+        case km_ops::KEY_AGREE_TO_SLOT:
+            return "KEY_AGREE_TO_SLOT";
+        case km_ops::KEY_WRAP:
+            return "KEY_WRAP";
+        case km_ops::KEY_GET_WRAP_SIZE:
+            return "KEY_GET_WRAP_SIZE";
+        case km_ops::KEY_UNWRAP:
+            return "KEY_UNWRAP";
+        case km_ops::KEY_UNWRAP_TO_SLOT:
+            return "KEY_UNWRAP_TO_SLOT";
+        case km_ops::KEY_IMPORT:
+            return "KEY_IMPORT";
+        case km_ops::KEY_IMPORT_TO_SLOT:
+            return "KEY_IMPORT_TO_SLOT";
+        case km_ops::KEY_LOAD:
+            return "KEY_LOAD";
+        case km_ops::KEY_EXPORT:
+            return "KEY_EXPORT";
+        case km_ops::KEY_GET_EXPORT_SIZE:
+            return "KEY_GET_EXPORT_SIZE";
+        case km_ops::KEY_SLOT_INFO:
+            return "KEY_SLOT_INFO";
+        case km_ops::KEY_CLEAR:
+            return "KEY_CLEAR";
+        case km_ops::KEY_RELEASE:
+            return "KEY_RELEASE";
+        default:
+            return "<unknown_key_mgmt_op>";
+    }
+}
+
+}  // namespace detail
+
+/// @brief Returns the symbolic name for an OperationAction within the given actor's namespace.
+///
+/// The actor context is required because the same action integer has different meanings
+/// across actors (e.g., action=1 is CTX_CREATE for MEDIATOR but HASH_INIT for HASH_HANDLER).
+constexpr std::string_view ActionName(OperationActor actor, OperationAction action) noexcept
+{
+    switch (actor)
+    {
+        case actors::OP_ACTOR_MEDIATOR:
+        case actors::OP_ACTOR_HASH_HANDLER:
+            return detail::MediatorAndHashActionName(actor, action);
+        case actors::OP_ACTOR_MAC_HANDLER:
+        case actors::OP_ACTOR_CIPHER_HANDLER:
+            return detail::MacAndCipherActionName(actor, action);
+        case actors::OP_ACTOR_SIGN_HANDLER:
+        case actors::OP_ACTOR_VERIFY_HANDLER:
+            return detail::SignAndVerifyActionName(actor, action);
         case actors::OP_ACTOR_RANDOM_HANDLER:
-            switch (action)
-            {
-                case random_ops::RANDOM_GENERATE:
-                    return "RANDOM_GENERATE";
-                case random_ops::RANDOM_SEED:
-                    return "RANDOM_SEED";
-                default:
-                    return "<unknown_random_op>";
-            }
-
+            return detail::RandomActionName(action);
         case actors::OP_ACTOR_KEY_MANAGEMENT:
-            switch (action)
-            {
-                case km_ops::KEY_GENERATE:
-                    return "KEY_GENERATE";
-                case km_ops::KEY_GENERATE_TO_SLOT:
-                    return "KEY_GENERATE_TO_SLOT";
-                case km_ops::KEY_PERSIST:
-                    return "KEY_PERSIST";
-                case km_ops::KEY_DERIVE:
-                    return "KEY_DERIVE";
-                case km_ops::KEY_DERIVE_TO_SLOT:
-                    return "KEY_DERIVE_TO_SLOT";
-                case km_ops::KEY_AGREE:
-                    return "KEY_AGREE";
-                case km_ops::KEY_AGREE_TO_SLOT:
-                    return "KEY_AGREE_TO_SLOT";
-                case km_ops::KEY_WRAP:
-                    return "KEY_WRAP";
-                case km_ops::KEY_GET_WRAP_SIZE:
-                    return "KEY_GET_WRAP_SIZE";
-                case km_ops::KEY_UNWRAP:
-                    return "KEY_UNWRAP";
-                case km_ops::KEY_UNWRAP_TO_SLOT:
-                    return "KEY_UNWRAP_TO_SLOT";
-                case km_ops::KEY_IMPORT:
-                    return "KEY_IMPORT";
-                case km_ops::KEY_IMPORT_TO_SLOT:
-                    return "KEY_IMPORT_TO_SLOT";
-                case km_ops::KEY_LOAD:
-                    return "KEY_LOAD";
-                case km_ops::KEY_EXPORT:
-                    return "KEY_EXPORT";
-                case km_ops::KEY_GET_EXPORT_SIZE:
-                    return "KEY_GET_EXPORT_SIZE";
-                case km_ops::KEY_SLOT_INFO:
-                    return "KEY_SLOT_INFO";
-                case km_ops::KEY_CLEAR:
-                    return "KEY_CLEAR";
-                case km_ops::KEY_RELEASE:
-                    return "KEY_RELEASE";
-                default:
-                    return "<unknown_key_mgmt_op>";
-            }
-
+            return detail::KeyManagementActionName(action);
         default:
             return "<unknown_op>";
     }
